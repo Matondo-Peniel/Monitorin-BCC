@@ -10,7 +10,8 @@ import LoadingTable from './components/LoadingTable';
 import AlertsPanel from './components/AlertsPanel';
 import AllLoadings from './components/AllLoadings';
 import FluxETLPage from './components/FluxETLPage';
-import './App.css';import './interactive.css';import './layout-fix.css';import './profile-fix.css';import './cards-polish.css';import './typography-compact.css';import './custom-icons.css';import './status-card.css';import './icon-colors.css';import './icon-placement.css';import './green-check-fix.css';import './database-align.css';import './flow-card-fix.css';
+import ProfilePage from './components/ProfilePage';
+import './App.css';import './interactive.css';import './layout-fix.css';import './profile-fix.css';import './profile-page.css';import './cards-polish.css';import './typography-compact.css';import './custom-icons.css';import './status-card.css';import './icon-colors.css';import './icon-placement.css';import './green-check-fix.css';import './database-align.css';import './flow-card-fix.css';
 
 function Dashboard({ onViewAll, onViewFlux }) {
   return <><Header /><section className="kpi-grid">
@@ -26,5 +27,6 @@ export default function App() {
   const [open, setOpen] = useState(false);
   const showAll = active === 'Tous les chargements' || active === 'Suivi des chargements';
   const showFlux = active === 'Flux ETL';
-  return <div className="dashboard-app"><Sidebar active={showAll ? 'Suivi des chargements' : active} setActive={setActive} open={open} setOpen={setOpen} /><main className="dashboard-main">{showAll ? <AllLoadings onBack={() => setActive('Tableau de bord')} /> : showFlux ? <FluxETLPage onNavigate={setActive} /> : <Dashboard onViewAll={() => setActive('Tous les chargements')} onViewFlux={() => setActive('Flux ETL')} />}</main></div>;
+  const showProfile = active === 'Mon profil';
+  return <div className="dashboard-app"><Sidebar active={showAll ? 'Suivi des chargements' : active} setActive={setActive} open={open} setOpen={setOpen} /><main className="dashboard-main">{showProfile ? <ProfilePage onNavigate={setActive} /> : showAll ? <AllLoadings onBack={() => setActive('Tableau de bord')} /> : showFlux ? <FluxETLPage onNavigate={setActive} /> : <Dashboard onViewAll={() => setActive('Tous les chargements')} onViewFlux={() => setActive('Flux ETL')} />}</main></div>;
 }
