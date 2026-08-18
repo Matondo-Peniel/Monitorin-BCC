@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Camera, Check, CircleCheckBig, ClipboardList, Eye, EyeOff, Info, LockKeyhole, Mail, ShieldCheck, UserRound, UserRoundPlus, X } from 'lucide-react';
 import bccLogo from '../assets/bcc-logo.png';
+import { api } from '../api';
 
 const roles = [
   ['Consultant', 'Peut consulter les tableaux de bord, le suivi des chargements, les rapports et l’historique.'],
@@ -18,11 +19,13 @@ export default function RegisterUserPage({ onCancel, onComplete }) {
   const [showPass, setShowPass] = useState(false);
   const [photo, setPhoto] = useState('');
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name:'', username:'', email:'', phone:'', job:'', department:'', password:'', confirm:'' });
   const fileRef = useRef(null);
   const update = event => setForm({ ...form, [event.target.name]: event.target.value });
   const allowed = name => role === 'Administrateur' || (role === 'Analyste' && !['Utilisateurs','Gestion des rôles','Sécurité et sauvegarde'].includes(name)) || (role === 'Consultant' && !['Paramètres','Utilisateurs','Gestion des rôles','Sécurité et sauvegarde'].includes(name)) || (role === 'Lecteur' && ['Tableau de bord','Historique'].includes(name));
-  const goNext = event => { event.preventDefault(); if (!form.name || !form.username || !form.email || form.password.length < 8 || form.password !== form.confirm) { setError('Complétez les champs obligatoires et vérifiez les mots de passe.'); return; } setError(''); setStep(2); };
+  const goNext = event => { event.preventDefault(); if (!form.name || !form.username || !form.email) { setError('Complétez les champs obligatoires.'); return; } setError(''); setStep(2); };
+  const saveInvitation = async () => { setSaving(true); setError(''); try { const invitation = await api.invite({ nomComplet:form.name, email:form.email, role:role==='Administrateur'?'ADMINISTRATEUR':'CONSULTANT' }); onComplete?.({ ...form, role, active:false, invitation }); } catch (exception) { setError(exception.message); } finally { setSaving(false); } };
   const Steps = () => <nav className={`register-steps register-step-${step}`}>{steps.map((label,index)=><span className={step===index+1?'active':step>index+1?'done':''} key={label}><b>{index+1}</b>{label}</span>)}</nav>;
   const Header = ({ text }) => <header className="register-header"><div><h1><UserRoundPlus />Enregistrer un utilisateur</h1><p>{text}</p></div><div className="register-bank-mark"><img src={bccLogo} alt=""/><strong>BANQUE CENTRALE<br/>DU CONGO</strong></div></header>;
 

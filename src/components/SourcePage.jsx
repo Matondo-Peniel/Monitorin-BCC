@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronsUpDown, Clock3, Database, FileText, Landmark, RefreshCw, Server } from 'lucide-react';
 import bccLogo from '../assets/bcc-logo.png';
 import '../source-selector.css';
+import {api} from '../api';
 
 // Données de démonstration uniquement. À remplacer plus tard par GET /api/sources.
 const DEMO_SOURCES=[
@@ -11,14 +12,15 @@ const DEMO_SOURCES=[
 ];
 
 export default function SourcePage({onNavigate}){
- const[sourceId,setSourceId]=useState(DEMO_SOURCES[0].id),[testing,setTesting]=useState(false),[message,setMessage]=useState(''),[dateOpen,setDateOpen]=useState(false),[date,setDate]=useState('2025-05-14');
- const source=useMemo(()=>DEMO_SOURCES.find(item=>item.id===sourceId)??DEMO_SOURCES[0],[sourceId]);
- const stats=useMemo(()=>{const total=source.rows.length,staging=source.rows.filter(r=>r[1]).length,dw=source.rows.filter(r=>r[2]).length;return[[FileText,'Total d’enregistrements',String(total),'document'],[CalendarDays,'Période couverte',`${total} jours`,'calendar'],[Check,'Taux de réussite Staging',`${(staging/total*100).toFixed(1).replace('.',',')} %`,'success'],[Landmark,'Taux de réussite DW',`${(dw/total*100).toFixed(1).replace('.',',')} %`,'warehouse']]},[source]);
+ const[sources,setSources]=useState(DEMO_SOURCES),[sourceId,setSourceId]=useState(DEMO_SOURCES[0].id),[testing,setTesting]=useState(false),[message,setMessage]=useState(''),[dateOpen,setDateOpen]=useState(false),[date,setDate]=useState(new Date().toISOString().slice(0,10));
+ useEffect(()=>{(async()=>{try{const list=await api.sources();const connected=await Promise.all(list.map(async item=>{const history=await api.history(item.idConnexion,'2020-01-01','2031-01-01',1,100);return{id:String(item.idConnexion),name:item.nomConnexion,environment:`${item.typeConnexion} — ${item.nomConnexion}`,type:item.typeConnexion,server:item.nomServeur,database:item.nomBase,monitoringTable:item.nomTableMonitoring,status:'CONNECTED',lastCheck:new Date().toLocaleString('fr-FR'),nextCheck:'Lecture à la demande',description:'Connexion SQL Server autorisée pour la supervision des exécutions ETL.',columns:['DateHeureETL','Staging (0 = Échec, 1 = Réussi)','Entrepôt (0 = Échec, 1 = Réussi)'],rows:history.donnees.slice(0,5).map(row=>[new Date(row.dateHeureETL).toLocaleString('fr-FR'),row.staging?1:0,row.entrepot?1:0]),technical:{driver:'Microsoft.Data.SqlClient',encoding:'UTF-8',timezone:'(UTC+01:00) Kinshasa',frequency:'Données issues de l’API'}}}));if(connected.length){setSources(connected);setSourceId(connected[0].id)}}catch{setMessage('Backend indisponible : données de démonstration affichées.')}})()},[]);
+ const source=useMemo(()=>sources.find(item=>item.id===sourceId)??sources[0],[sourceId,sources]);
+ const stats=useMemo(()=>{const total=source.rows.length,staging=source.rows.filter(r=>r[1]).length,dw=source.rows.filter(r=>r[2]).length,pct=value=>total?`${(value/total*100).toFixed(1).replace('.',',')} %`:'NO DATA';return[[FileText,'Total d’enregistrements',String(total),'document'],[CalendarDays,'Période couverte',`${total} exécutions`,'calendar'],[Check,'Taux de réussite Staging',pct(staging),'success'],[Landmark,'Taux de réussite DW',pct(dw),'warehouse']]},[source]);
  const dateLabel=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric'}).format(new Date(`${date}T12:00:00`));
- const selectSource=e=>{const id=e.target.value,next=DEMO_SOURCES.find(item=>item.id===id);setSourceId(id);setMessage(`${next.name} est maintenant la source active`);window.setTimeout(()=>setMessage(''),2200)};
+ const selectSource=e=>{const id=e.target.value,next=sources.find(item=>item.id===id);setSourceId(id);setMessage(`${next.name} est maintenant la source active`);window.setTimeout(()=>setMessage(''),2200)};
  const test=()=>{setTesting(true);setMessage('');window.setTimeout(()=>{setTesting(false);setMessage(source.status==='CONNECTED'?`Connexion à ${source.name} réussie`:`${source.name} est actuellement indisponible`)},700)};
  return <div className="source-page"><header className="source-page-heading"><div><h1>Source</h1><p>Informations sur la source de données surveillée</p></div><div className="source-heading-actions">
-  <label className="source-selector"><Server/><span><small>Connexion surveillée</small><select aria-label="Connexion ou environnement surveillé" value={sourceId} onChange={selectSource}>{DEMO_SOURCES.map(item=><option value={item.id} key={item.id}>{item.environment}</option>)}</select></span><ChevronDown/></label>
+  <label className="source-selector"><Server/><span><small>Connexion surveillée</small><select aria-label="Connexion ou environnement surveillé" value={sourceId} onChange={selectSource}>{sources.map(item=><option value={item.id} key={item.id}>{item.environment}</option>)}</select></span><ChevronDown/></label>
   <div className="source-date-control"><button className={dateOpen?'active':''} aria-expanded={dateOpen} onClick={()=>setDateOpen(!dateOpen)}><CalendarDays/><span><small>Date observée</small><b>{dateLabel}</b></span><ChevronDown className={dateOpen?'open':''}/></button>{dateOpen&&<div className="source-date-pop"><header><CalendarDays/><div><b>Date des données</b><small>Sélectionnez une journée</small></div></header><input type="date" value={date} onChange={e=>setDate(e.target.value)}/><footer><button onClick={()=>setDateOpen(false)}>Appliquer</button></footer></div>}</div>
   <div className="source-page-logo"><img src={bccLogo} alt="Banque Centrale du Congo"/><b>BANQUE CENTRALE<br/>DU CONGO</b></div>
  </div></header>{message&&<div className={`source-toast ${source.status==='DISCONNECTED'?'warning':''}`} role="status"><CheckCircle2/>{message}</div>}<div className="source-layout">

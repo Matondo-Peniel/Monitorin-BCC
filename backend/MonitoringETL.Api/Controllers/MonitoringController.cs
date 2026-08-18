@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MonitoringETL.Api.Data;
 namespace MonitoringETL.Api.Controllers;
 
-[ApiController,Route("api/monitoring")]
+[Authorize,ApiController,Route("api/monitoring")]
 public sealed class MonitoringController(MonitoringDbContext db):ControllerBase{
  [HttpGet("latest")]public async Task<IActionResult> Latest([FromQuery]int sourceId,CancellationToken ct){var row=await db.SuiviChargements.AsNoTracking().Where(x=>x.IdConnexion==sourceId).OrderByDescending(x=>x.DateHeureETL).Select(x=>new{x.Id,x.DateHeureETL,x.Staging,x.Entrepot,Statut=x.Staging?(x.Entrepot?"REUSSI":"PARTIEL"):"ECHEC"}).FirstOrDefaultAsync(ct);if(row is null)return Ok(new{statut="NO_DATA",donnee=(object?)null});return Ok(new{statut="OK",donnee=row});}
  [HttpGet]public async Task<IActionResult> Range([FromQuery]int sourceId,[FromQuery]DateTime debut,[FromQuery]DateTime fin,[FromQuery]int page=1,[FromQuery]int taille=20,CancellationToken ct=default){if(fin<=debut)return BadRequest("La date de fin doit être postérieure à la date de début.");page=Math.Max(1,page);taille=Math.Clamp(taille,1,100);var query=db.SuiviChargements.AsNoTracking().Where(x=>x.IdConnexion==sourceId&&x.DateHeureETL>=debut&&x.DateHeureETL<fin);var total=await query.CountAsync(ct);var rows=await query.OrderByDescending(x=>x.DateHeureETL).Skip((page-1)*taille).Take(taille).Select(x=>new{x.Id,x.DateHeureETL,x.Staging,x.Entrepot,Statut=x.Staging?(x.Entrepot?"REUSSI":"PARTIEL"):"ECHEC"}).ToListAsync(ct);return Ok(new{statut=total==0?"NO_DATA":"OK",total,page,taille,donnees=rows});}

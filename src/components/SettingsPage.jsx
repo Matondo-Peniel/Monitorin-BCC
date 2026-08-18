@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Eye, Filter, MoreVertical, Pencil, Plus, RefreshCw, Search, Settings, ShieldCheck, UserCheck, Users, X } from 'lucide-react';
 import bccLogo from '../assets/bcc-logo.png';
 import BackupSettings from './BackupSettings';
 import SecuritySettings from './SecuritySettings';
 import NotificationSettings from './NotificationSettings';
 import GeneralSettings from './GeneralSettings';
+import {api} from '../api';
 
 const initialUsers = [
   ['Florin Mayala', 'f.mayala', 'Administrateur', 'florin.mayala@bcc.cd', 'Actif', '14/05/2025 07:32'],
@@ -28,6 +29,7 @@ export default function SettingsPage({ usersOnly = false, onNavigate, createdUse
   const [users, setUsers] = useState(() => [...initialUsers, ...createdUsers.map(user => [user.name, user.username, user.role, user.email, user.active ? 'Actif' : 'Inactif', 'Jamais'])]);
   const [draft, setDraft] = useState({ name: '', username: '', email: '', role: 'Consultant' });
   const [notice, setNotice] = useState('');
+  useEffect(()=>{if(usersOnly)api.users().then(items=>setUsers(items.map(item=>[item.nomComplet,item.email?.split('@')[0]||'',item.roles?.[0]==='ADMINISTRATEUR'?'Administrateur':'Consultant',item.email,item.actif?'Actif':'Inactif',item.derniereConnexion?new Date(item.derniereConnexion).toLocaleString('fr-FR'):'Jamais']))).catch(()=>flash('Impossible de charger les utilisateurs depuis le backend.'))},[usersOnly]);
   const flash = text => { setNotice(text); setTimeout(() => setNotice(''), 2200); };
   const filtered = useMemo(() => users.filter(user => `${user[0]} ${user[1]} ${user[3]}`.toLowerCase().includes(query.toLowerCase()) && (role === 'Tous les rôles' || user[2] === role) && (status === 'Tous les statuts' || user[4] === status)), [users, query, role, status]);
   const reset = () => { setQuery(''); setRole('Tous les rôles'); setStatus('Tous les statuts'); };
