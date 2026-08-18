@@ -1,0 +1,915 @@
+button,a,[role="button"]{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible{outline:3px solid rgba(8,102,245,.35);outline-offset:3px}
+button svg,a svg,[role="button"] svg{pointer-events:none}
+.brand{width:100%;height:auto;display:block;background:transparent;border-radius:0}.brand:hover{background:rgba(255,255,255,.42)}
+.settings-row-actions button,.backup-actions button,.history-table-card td:last-child button,.tracking-detail-title button,.tracking-modal>button,.detail-close,.profile-photo button{min-width:36px;min-height:36px}
+@media(max-width:760px){button,a,[role="button"]{min-height:44px}.mobile-menu,.close-nav{min-width:44px}.top-actions,.history-head-actions,.settings-filters,.tracking-toolbar>div{flex-wrap:wrap}}
+
+/* Barre supérieure fixe de la zone de contenu, commune à toutes les interfaces. */
+.dashboard-main>.topbar,
+.tracking-header,
+.flux-header,
+.history-header,
+.profile-header,
+.settings-header,
+.about-header,
+.source-page>.source-page-heading,
+.module-page>header,
+.register-page>header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height:86px;
+  margin:0 0 24px;
+  padding:20px 4px 16px;
+  background:linear-gradient(145deg,#f8fcff 0%,#eef7fd 100%);
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+.dashboard-main>.topbar { align-items: center; }
+
+@media(max-width:760px){
+  .dashboard-main>.topbar,
+  .tracking-header,.flux-header,.history-header,.profile-header,.settings-header,
+  .about-header,.source-page>.source-page-heading,.module-page>header,.register-page>header {
+    top: 0;
+    min-height: 72px;
+    margin:0 0 18px;
+    padding:12px 4px 12px 48px;
+  }
+  .dashboard-main>.topbar>div:first-child p,
+  .tracking-header>div:first-child p,.flux-header>div:first-child p,
+  .history-header>div:first-child p,.profile-header>div:first-child p,
+  .settings-header>div:first-child p,.about-header>div:first-child p,
+  .source-page>.source-page-heading p,.module-page>header p,.register-page>header p { display:none; }
+}
+
+/* Surface continue conforme à la maquette : aucun jour entre la navigation et le contenu. */
+html,body,#root{min-height:100%;background:#edf6fd}
+body{background:linear-gradient(135deg,#e7f4ff 0%,#f4f9fd 48%,#eaf4fb 100%);background-attachment:fixed}
+.dashboard-app{
+  gap:0;
+  padding:6px;
+  background:linear-gradient(135deg,#e7f4ff 0%,#f4f9fd 48%,#eaf4fb 100%);
+}
+.sidebar{z-index:90}
+.dashboard-main{
+  align-self:stretch;
+  min-height:calc(100vh - 12px);
+  margin-left:0;
+  background:linear-gradient(145deg,rgba(248,252,255,.98) 0%,rgba(238,247,253,.98) 100%);
+  border-left:0;
+  border-radius:0 15px 15px 0;
+}
+.sidebar{border-radius:15px 0 0 15px}
+.dashboard-main>div,
+.dashboard-main>.kpi-grid,
+.dashboard-main>.middle-grid,
+.dashboard-main>.bottom-grid{position:relative}
+
+@media(max-width:760px){
+  .dashboard-app{padding:0}
+  .dashboard-main{min-height:100vh;border-radius:0;border:0;margin:0}
+  .sidebar{border-radius:0}
+}
+
+/* Mise en page desktop définitive : deux colonnes, sans chevauchement ni vide à droite. */
+@media(min-width:761px){
+  html,body,#root{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
+  .dashboard-app{
+    display:grid;
+    grid-template-columns:235px minmax(0,1fr);
+    align-items:start;
+    width:100%;
+    height:100vh;
+    min-height:0;
+    overflow:hidden;
+    gap:0;
+    padding:0;
+  }
+  .sidebar{
+    position:relative;
+    inset:auto;
+    top:auto;
+    width:235px;
+    height:100vh!important;
+    min-height:0;
+    align-self:start;
+    border-radius:0;
+  }
+  .sidebar nav{
+    gap:6px;
+    padding-top:10px;
+    padding-bottom:10px;
+  }
+  .dashboard-main{
+    width:100%;
+    max-width:none;
+    min-width:0;
+    height:100vh;
+    min-height:0;
+    margin:0;
+    border-radius:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding-top:0;
+  }
+}
+
+@media(min-width:761px) and (max-height:820px){
+  .sidebar nav{gap:3px;padding-top:5px;padding-bottom:5px}
+}
+
+@media(max-width:760px){
+  html,body,#root{height:auto;overflow-x:hidden;overflow-y:auto}
+}
+
+/* Rythme commun des cartes, calqué sur l'écran Paramètres. */
+:root{--interface-gap:14px}
+.dashboard-main>.topbar,
+.tracking-header,.flux-header,.history-header,.profile-header,.settings-header,
+.about-header,.source-page>.source-page-heading,.module-page>header,.register-page>header{
+  margin-bottom:var(--interface-gap);
+}
+.kpi-grid,.middle-grid,.bottom-grid,
+.tracking-kpis,.tracking-content,.flux-grid,.history-kpis,.history-charts,
+.source-layout,.settings-users-stats,.general-grid,.security-grid,
+.backup-overview-row,.backup-configuration,.module-reports,
+.register-layout,.role-step-layout{
+  gap:var(--interface-gap);
+}
+.kpi-grid,.middle-grid{margin-bottom:var(--interface-gap)}
+.settings-shell,.card,.source-card,.register-card{
+  border-color:#cfe1f2;
+}
+
+/* Onglets des paramètres : titres nettement séparés et répartis. */
+.settings-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(150px,1fr));
+  width:100%;
+  height:58px;
+  padding:0;
+}
+.settings-tabs button{
+  width:100%;
+  padding:0 24px;
+  text-align:center;
+  border-right:1px solid #e1ebf5;
+  white-space:nowrap;
+}
+.settings-tabs button:last-child{border-right:0}
+.settings-tabs button.active:after{left:18px;right:18px;height:3px}
+
+@media(max-width:760px){
+  .settings-tabs{display:flex;height:54px;overflow-x:auto}
+  .settings-tabs button{flex:0 0 auto;width:auto;min-width:155px}
+}
+
+/* Paramètres sans encadrement arrondi ni bande grise derrière les titres. */
+.settings-shell,
+.settings-shell .general-card,
+.settings-shell .notification-card,
+.settings-shell .security-grid>section,
+.settings-shell .backup-configuration>div,
+.settings-shell .backup-overview article{
+  border-radius:0;
+}
+.settings-tabs,
+.settings-shell.notification-active .settings-tabs{
+  background:transparent;
+  border-radius:0;
+}
+.settings-tabs button{
+  background:transparent;
+  border-radius:0;
+}
+
+/* Notifications aligné sur la composition régulière de l'écran Sécurité. */
+.notification-settings{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  padding:12px;
+}
+.notification-card{
+  min-width:0;
+  padding:16px 18px;
+}
+.notification-card-title{
+  min-height:38px;
+  margin:0 0 10px;
+  padding:0 0 10px;
+  border-bottom:1px solid #d8e6f3;
+}
+.notification-row,.channel-row{min-height:45px}
+.webhook-line{
+  grid-template-columns:100px minmax(0,1fr) auto;
+  margin:6px 0 0;
+}
+.summary-row{
+  grid-template-columns:minmax(180px,1fr) auto auto auto;
+  min-height:47px;
+}
+.recipient-row{
+  grid-template-columns:minmax(0,1fr) minmax(180px,32%);
+  min-height:45px;
+  margin-bottom:0;
+}
+
+@media(max-width:1050px){
+  .notification-settings{grid-template-columns:1fr}
+  .notification-events{grid-column:auto}
+}
+@media(max-width:680px){
+  .webhook-line,.summary-row,.recipient-row{grid-template-columns:1fr}
+}
+
+/* Arrondi uniforme de toutes les surfaces de type carte. */
+.card,
+.settings-shell,
+.general-card,
+.notification-card,
+.security-grid>section,
+.security-sessions-card,
+.backup-overview article,
+.backup-next,
+.backup-configuration>div,
+.backup-history,
+.source-card,
+.register-card,
+.module-reports>article,
+.module-list,
+.history-kpis>article,
+.history-charts>article,
+.tracking-kpis>article,
+.tracking-table-card,
+.tracking-detail,
+.pipeline-card,
+.status-row,
+.recent-steps,
+.flux-notice,
+.about-hero-card,
+.about-system-card,
+.about-contact-card{
+  border-radius:10px;
+}
+
+/* Les onglets et les entêtes restent plats. */
+.settings-tabs,.settings-tabs button,
+.dashboard-main>.topbar,.tracking-header,.flux-header,.history-header,
+.profile-header,.settings-header,.about-header,.source-page>.source-page-heading,
+.module-page>header,.register-page>header{border-radius:0}
+
+/* Exception demandée : toutes les cartes de Paramètres restent plates. */
+.settings-page .settings-shell,
+.settings-page .general-card,
+.settings-page .notification-card,
+.settings-page .security-grid>section,
+.settings-page .security-sessions-card,
+.settings-page .backup-overview article,
+.settings-page .backup-next,
+.settings-page .backup-configuration>div,
+.settings-page .backup-history{
+  border-radius:0;
+}
+
+/* Paramètres : barre d'onglets et cartes sœurs, sans grande carte englobante. */
+.settings-page .settings-shell{
+  overflow:visible;
+  padding:0 0 16px;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+.settings-page .settings-tabs,
+.settings-page .settings-shell.notification-active .settings-tabs{
+  margin:0 0 12px;
+  background:#fff;
+  border:1px solid #cfe1f2;
+  box-shadow:none;
+}
+.settings-page .general-settings,
+.settings-page .notification-settings,
+.settings-page .security-page,
+.settings-page .backup-page{
+  margin:0;
+  padding:0;
+  background:transparent;
+}
+.settings-page .general-settings>h2{
+  margin:0 0 14px 4px;
+}
+.settings-page .general-grid,
+.settings-page .notification-settings,
+.settings-page .security-grid,
+.settings-page .backup-overview-row{
+  gap:12px;
+}
+.settings-page .security-sessions-card,
+.settings-page .backup-configuration,
+.settings-page .backup-history{
+  margin-top:12px;
+}
+
+/* Arrondi léger des cartes indépendantes dans Paramètres. */
+.settings-page .general-card,
+.settings-page .notification-card,
+.settings-page .security-grid>section,
+.settings-page .security-sessions-card,
+.settings-page .backup-overview,
+.settings-page .backup-overview article,
+.settings-page .backup-next,
+.settings-page .backup-configuration,
+.settings-page .backup-history{
+  border-radius:7px;
+}
+
+/* Retour visuel au toucher pour les cartes de Paramètres. */
+.settings-page .general-card,
+.settings-page .notification-card,
+.settings-page .security-grid>section,
+.settings-page .security-sessions-card,
+.settings-page .backup-overview,
+.settings-page .backup-overview article,
+.settings-page .backup-next,
+.settings-page .backup-configuration,
+.settings-page .backup-history{
+  touch-action:manipulation;
+  transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease,transform .14s ease;
+}
+.settings-page .general-card:hover,
+.settings-page .notification-card:hover,
+.settings-page .security-grid>section:hover,
+.settings-page .security-sessions-card:hover,
+.settings-page .backup-overview:hover,
+.settings-page .backup-next:hover,
+.settings-page .backup-configuration:hover,
+.settings-page .backup-history:hover,
+.settings-page .general-card:focus-within,
+.settings-page .notification-card:focus-within,
+.settings-page .security-grid>section:focus-within,
+.settings-page .backup-configuration:focus-within{
+  border-color:#86baff;
+  box-shadow:0 7px 20px rgba(8,102,245,.09);
+}
+.settings-page .general-card:active,
+.settings-page .notification-card:active,
+.settings-page .security-grid>section:active,
+.settings-page .backup-overview article:active,
+.settings-page .backup-next:active,
+.settings-page .backup-history:active{
+  background:#f8fbff;
+  transform:scale(.995);
+}
+
+/* Retour tactile des cartes-titres / onglets. */
+.settings-page .settings-tabs button{
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:background-color .16s ease,color .16s ease,box-shadow .16s ease,transform .12s ease;
+}
+.settings-page .settings-tabs button:hover{
+  color:#0866e8;
+  background:#f3f8ff;
+  box-shadow:inset 0 0 0 1px rgba(8,102,245,.08);
+}
+.settings-page .settings-tabs button:active{
+  background:#e7f2ff;
+  transform:scale(.985);
+}
+.settings-page .settings-tabs button.active{
+  color:#0866e8;
+  background:#f7fbff;
+}
+
+/* L'écran autonome Utilisateurs conserve sa carte d'origine. */
+.settings-page:has(.settings-users-heading) .settings-shell{
+  overflow:visible;
+  padding:0 0 16px;
+  background:#fff;
+  border:1px solid #cfe1f2;
+  border-radius:10px;
+  box-shadow:0 2px 9px rgba(25,91,151,.025);
+}
+.settings-page:has(.settings-users-heading) .settings-users-heading{
+  display:flex;
+  padding:24px 21px;
+}
+.settings-page:has(.settings-users-heading) .settings-kpis{
+  gap:20px;
+  padding:0 21px 30px;
+}
+.settings-page:has(.settings-users-heading) .settings-table-wrap{
+  background:#fff;
+}
+
+/* Utilisateurs : aucune carte ne doit en contenir une autre. */
+.settings-page:has(.settings-users-heading) .settings-shell{
+  padding:0 0 16px;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.settings-page:has(.settings-users-heading) .settings-users-heading{
+  justify-content:flex-end;
+  padding:0 0 14px;
+}
+.settings-page:has(.settings-users-heading) .settings-users-heading>div{display:none}
+.settings-page:has(.settings-users-heading) .settings-kpis{
+  gap:14px;
+  padding:0 0 14px;
+}
+.settings-page:has(.settings-users-heading) .settings-kpis article{
+  background:#fff;
+  border-radius:8px;
+}
+.settings-page:has(.settings-users-heading) .settings-filters{
+  padding:10px 0 14px;
+}
+.settings-page:has(.settings-users-heading) .settings-table-wrap{
+  margin:0;
+  background:#fff;
+  border-radius:8px 8px 0 0;
+}
+.settings-page:has(.settings-users-heading) .settings-pagination{
+  background:#fff;
+  border:1px solid #dce9f5;
+  border-top:0;
+  border-radius:0 0 8px 8px;
+}
+
+/* Interaction tactile des cartes statistiques Utilisateurs. */
+.settings-page:has(.settings-users-heading) .settings-kpis article{
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform .14s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease;
+}
+.settings-page:has(.settings-users-heading) .settings-kpis article:hover{
+  border-color:#86baff;
+  background:#f8fbff;
+  box-shadow:0 7px 18px rgba(8,102,245,.10);
+  transform:translateY(-2px);
+}
+.settings-page:has(.settings-users-heading) .settings-kpis article:active{
+  background:#eaf4ff;
+  box-shadow:0 2px 7px rgba(8,102,245,.14);
+  transform:scale(.98);
+}
+
+/* Actualisation Utilisateurs cohérente avec les autres interfaces. */
+.settings-page:has(.settings-users-heading) .settings-filters>button:last-child{
+  touch-action:manipulation;
+}
+.settings-page:has(.settings-users-heading) .settings-filters>button:last-child:hover{
+  background:#edf5ff;
+  border-color:#6aaeff;
+  box-shadow:0 4px 12px rgba(8,102,245,.12);
+}
+.settings-page:has(.settings-users-heading) .settings-filters>button:last-child:active svg{
+  animation:spin .7s linear;
+}
+
+/* Surfaces entièrement opaques : aucun contenu visible à travers les entêtes/cartes. */
+html,body,#root,
+.dashboard-app{
+  background:#edf6fd;
+}
+.dashboard-main{
+  background:#f2f8fd;
+}
+.dashboard-main>.topbar,
+.tracking-header,.flux-header,.history-header,.profile-header,.settings-header,
+.about-header,.source-page>.source-page-heading,.module-page>header,.register-page>header{
+  background:#f2f8fd;
+  opacity:1;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+.card,
+.settings-kpis article,
+.settings-table-wrap,
+.settings-pagination,
+.general-card,.notification-card,.security-panel,.security-sessions-card,
+.backup-overview,.backup-overview article,.backup-next,.backup-configuration,.backup-history,
+.source-card,.register-card,.module-list,.module-reports>article,
+.history-kpis>article,.history-charts>article,.tracking-kpis>article,
+.tracking-table-card,.tracking-detail{
+  background-color:#fff;
+  opacity:1;
+}
+
+/* Interaction tactile des lignes de la carte Utilisateurs. */
+.settings-page:has(.settings-users-heading) .settings-table-wrap tbody tr{
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:background-color .15s ease,box-shadow .15s ease,transform .12s ease;
+}
+.settings-page:has(.settings-users-heading) .settings-table-wrap tbody tr:hover{
+  background:#f2f8ff;
+  box-shadow:inset 3px 0 0 #0866e8;
+}
+.settings-page:has(.settings-users-heading) .settings-table-wrap tbody tr:active{
+  background:#e5f1ff;
+  transform:scale(.997);
+}
+.settings-page:has(.settings-users-heading) .settings-table-wrap tbody tr:focus-within{
+  background:#eef6ff;
+  box-shadow:inset 3px 0 0 #0866e8;
+}
+
+/* Verrouillage opaque des entêtes fixes, couleur inchangée. */
+.dashboard-main>.topbar,
+.tracking-header,.flux-header,.history-header,.profile-header,.settings-header,
+.about-header,.source-page>.source-page-heading,.module-page>header,.register-page>header{
+  isolation:isolate;
+  background-color:#f2f8fd!important;
+  background-image:none!important;
+  opacity:1!important;
+}
+.dashboard-main>.topbar::before,
+.tracking-header::before,.flux-header::before,.history-header::before,
+.profile-header::before,.settings-header::before,.about-header::before,
+.source-page>.source-page-heading::before,.module-page>header::before,
+.register-page>header::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  background:#f2f8fd;
+  opacity:1;
+  pointer-events:none;
+}
+
+.dashboard-main>.topbar::after,
+.tracking-header::after,.flux-header::after,.history-header::after,
+.profile-header::after,.settings-header::after,.about-header::after,
+.source-page>.source-page-heading::after,.module-page>header::after,
+.register-page>header::after{
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:0;
+  right:0;
+  bottom:-14px;
+  height:14px;
+  background:#f2f8fd;
+  opacity:1;
+  pointer-events:none;
+}
+
+/* Interaction cohérente sur toutes les cartes, sans chevauchement du header. */
+.dashboard-main .card,
+.dashboard-main .source-card,
+.dashboard-main .register-card,
+.dashboard-main .general-card,
+.dashboard-main .notification-card,
+.dashboard-main .tracking-kpis>article,
+.dashboard-main .history-kpis>article,
+.dashboard-main .settings-kpis>article{
+  transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease!important;
+  transform:none!important;
+}
+.dashboard-main .card:hover,
+.dashboard-main .source-card:hover,
+.dashboard-main .register-card:hover,
+.dashboard-main .general-card:hover,
+.dashboard-main .notification-card:hover,
+.dashboard-main .tracking-kpis>article:hover,
+.dashboard-main .history-kpis>article:hover,
+.dashboard-main .settings-kpis>article:hover{
+  transform:none!important;
+  border-color:#9bc8ee!important;
+  box-shadow:0 7px 20px rgba(8,92,184,.09)!important;
+}
+.dashboard-main [role="button"]:active,
+.dashboard-main button:active{transform:scale(.985)}
+.dashboard-main .card:active,
+.dashboard-main .source-card:active,
+.dashboard-main .register-card:active{transform:none!important;background-color:#f8fbff}
+.dashboard-main>.topbar,
+.tracking-header,.flux-header,.history-header,.profile-header,.settings-header,
+.about-header,.source-page>.source-page-heading,.module-page>header,.register-page>header{
+  position:relative;
+  z-index:20;
+}
+.dashboard-main .tracking-kpis,.dashboard-main .history-kpis,.dashboard-main .settings-kpis,
+.dashboard-main .kpi-grid,.dashboard-main .source-layout,.dashboard-main .register-layout,
+.dashboard-main .role-step-layout,.dashboard-main .register-summary-layout{position:relative;z-index:1}
+
+/* Boutons compacts et tactiles de la page Sauvegarde. */
+.settings-page .backup-next>button,
+.settings-page .backup-test{
+  width:auto;
+  min-width:0;
+  height:34px;
+  min-height:34px;
+  padding:0 12px;
+  gap:7px;
+  border-radius:5px;
+  font-size:10px;
+  line-height:1;
+  font-weight:600;
+  touch-action:manipulation;
+  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .12s ease;
+}
+.settings-page .backup-next>button svg,
+.settings-page .backup-test svg{
+  width:15px;
+  height:15px;
+}
+.settings-page .backup-next>button:hover,
+.settings-page .backup-test:hover{
+  background:#edf5ff;
+  border-color:#4f98ef;
+  box-shadow:0 4px 11px rgba(8,102,245,.12);
+  transform:translateY(-1px);
+}
+.settings-page .backup-next>button:active,
+.settings-page .backup-test:active{
+  background:#dfeeff;
+  box-shadow:0 2px 5px rgba(8,102,245,.14);
+  transform:scale(.96);
+}
+
+/* Reproduction de la carte Configuration/Destination des sauvegardes. */
+.settings-page .backup-configuration{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:0;
+  padding:16px 18px 14px;
+  background:#fff;
+  border:1px solid #dce9f5;
+}
+.settings-page .backup-configuration>div{
+  min-width:0;
+}
+.settings-page .backup-configuration>div:first-child{
+  padding-right:24px;
+}
+.settings-page .backup-configuration>div+div{
+  border-left:1px solid #dce9f5;
+  padding-left:28px;
+}
+.settings-page .backup-configuration h2{
+  margin:0 0 13px;
+  font-size:14px;
+  line-height:1.25;
+}
+.settings-page .backup-configuration .backup-field{
+  grid-template-columns:minmax(205px,.92fr) minmax(220px,1.08fr);
+  min-height:32px;
+  gap:16px;
+  font-size:10.5px;
+}
+.settings-page .backup-configuration .backup-field>span:first-child{
+  line-height:1.3;
+}
+.settings-page .backup-configuration .backup-field input,
+.settings-page .backup-configuration .backup-field select{
+  width:100%;
+  height:30px;
+  font-size:10.5px;
+}
+.settings-page .backup-configuration .backup-encryption{font-size:10.5px}
+.settings-page .backup-configuration>div:first-child .backup-field:nth-of-type(3) input,
+.settings-page .backup-configuration>div:first-child .backup-field:nth-of-type(4) select{
+  justify-self:start;
+  width:96px;
+}
+.settings-page .backup-configuration .backup-switch{
+  justify-self:start;
+}
+.settings-page .backup-configuration .backup-test{
+  margin:24px 0 0 auto;
+}
+
+@media(max-width:1100px){
+  .settings-page .backup-configuration{grid-template-columns:1fr;gap:18px}
+  .settings-page .backup-configuration>div:first-child{padding-right:0}
+  .settings-page .backup-configuration>div+div{border-left:0;border-top:1px solid #dce9f5;padding:18px 0 0}
+}
+@media(max-width:650px){
+  .settings-page .backup-configuration .backup-field{grid-template-columns:1fr;gap:5px;margin-bottom:9px}
+}
+
+/* Reproduction de la carte Vue d'ensemble des sauvegardes. */
+.settings-page .backup-overview-row{
+  grid-template-columns:minmax(0,1.8fr) minmax(300px,1fr);
+  gap:12px;
+}
+.settings-page .backup-overview{
+  padding:16px 18px;
+  background:#fff;
+  border:1px solid #dce9f5;
+}
+.settings-page .backup-overview h2{
+  margin:0 0 16px;
+  font-size:15px;
+  line-height:1.25;
+}
+.settings-page .backup-overview>div{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.settings-page .backup-overview article{
+  min-height:140px;
+  padding:16px;
+  grid-template-columns:34px minmax(0,1fr);
+  align-content:start;
+  align-items:center;
+  gap:9px;
+  background:#fff;
+  border:1px solid #d8e6f3;
+  border-radius:7px;
+}
+.settings-page .backup-overview article>svg{
+  width:27px;
+  height:27px;
+}
+.settings-page .backup-overview article strong{
+  font-size:29px;
+  line-height:1;
+}
+.settings-page .backup-overview article strong em{font-size:13px}
+.settings-page .backup-overview article b{
+  margin-top:3px;
+  font-size:11.5px;
+  line-height:1.3;
+}
+.settings-page .backup-overview article small{
+  font-size:11px;
+  line-height:1.3;
+}
+.settings-page .backup-overview article>i{
+  height:5px;
+  margin-top:2px;
+  overflow:hidden;
+  background:#d8e5f7;
+  border-radius:5px;
+}
+
+@media(max-width:1200px){
+  .settings-page .backup-overview-row{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .settings-page .backup-overview>div{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){
+  .settings-page .backup-overview>div{grid-template-columns:1fr}
+}
+
+/* Nouvelle tentative d'une sauvegarde : même retour que l'actualisation Dashboard. */
+.settings-page .backup-actions button:has(.lucide-refresh-cw){
+  touch-action:manipulation;
+  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .12s ease;
+}
+.settings-page .backup-actions button:has(.lucide-refresh-cw):hover{
+  background:#edf5ff;
+  border-color:#6aaeff;
+  box-shadow:0 3px 9px rgba(8,102,245,.14);
+}
+.settings-page .backup-actions button:has(.lucide-refresh-cw):focus svg,
+.settings-page .backup-actions button:has(.lucide-refresh-cw):active svg{
+  animation:spin .7s linear;
+}
+.settings-page .backup-actions button:has(.lucide-refresh-cw):active{
+  background:#dfeeff;
+  transform:scale(.92);
+}
+
+/* Reproduction visuelle des cartes Paramètres - Sécurité. */
+.settings-page .security-page{
+  padding:0;
+  background:transparent;
+}
+.settings-page .security-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.settings-page .security-panel,
+.settings-page .security-sessions-card{
+  padding:17px 20px;
+  background:#fff;
+  border:1px solid #dce9f5;
+  border-radius:7px;
+}
+.settings-page .security-panel h2,
+.settings-page .security-sessions-card h2{
+  height:40px;
+  margin:0;
+  border-bottom:1px solid #dce9f5;
+  align-items:flex-start;
+  gap:12px;
+  font-size:14px;
+  line-height:31px;
+}
+.settings-page .security-panel h2>span,
+.settings-page .security-sessions-card h2>span{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+}
+.settings-page .security-panel h2 svg,
+.settings-page .security-sessions-card h2 svg{
+  width:18px;
+  height:18px;
+}
+.settings-page .security-row{
+  min-height:58px;
+  gap:20px;
+}
+.settings-page .security-row>div{gap:5px}
+.settings-page .security-row b{font-size:11px;line-height:1.3}
+.settings-page .security-row small{font-size:10px;line-height:1.35}
+.settings-page .security-row select{
+  width:158px;
+  height:35px;
+  font-size:10.5px;
+}
+.settings-page .security-action{
+  min-width:92px;
+  height:34px;
+  justify-content:center;
+  padding:0 12px;
+  font-size:10.5px;
+}
+.settings-page .security-note{
+  min-height:55px;
+  margin-top:2px;
+  padding:11px 13px;
+  align-items:center;
+  font-size:9.5px;
+}
+.settings-page .security-sessions-card{
+  margin-top:12px;
+  padding:14px 20px 16px;
+}
+.settings-page .security-sessions-card h2{border-bottom:0}
+.settings-page .security-sessions-card table{font-size:9.5px}
+.settings-page .security-sessions-card th,
+.settings-page .security-sessions-card td{
+  height:40px;
+  padding:8px 10px;
+}
+.settings-page .security-sessions-card th{background:#f5f9ff}
+.settings-page .security-sessions-card>footer{
+  margin-top:14px;
+}
+.settings-page .security-sessions-card>footer>span{font-size:9px}
+.settings-page .security-sessions-card>footer>button{
+  height:38px;
+  font-size:10.5px;
+}
+
+@media(max-width:1000px){
+  .settings-page .security-grid{grid-template-columns:1fr}
+}
+
+/* Aucun faux encadrement translucide au passage du curseur. */
+.dashboard-main .card:hover,
+.dashboard-main .source-card:hover,
+.dashboard-main .register-card:hover,
+.dashboard-main .general-card:hover,
+.dashboard-main .notification-card:hover,
+.dashboard-main .tracking-kpis>article:hover,
+.dashboard-main .history-kpis>article:hover,
+.dashboard-main .settings-kpis>article:hover,
+.settings-page .backup-overview:hover,
+.settings-page .backup-next:hover,
+.settings-page .backup-configuration:hover,
+.settings-page .backup-history:hover{
+  transform:none!important;
+  border-color:#cfe1f2!important;
+  box-shadow:none!important;
+}
+.brand:hover,.top-logo:hover,.about-header-logo:hover,.tracking-logo:hover{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+
+/* Le toucher ne doit jamais remplacer le fond normal d'une carte. */
+.dashboard-main .card:active,
+.dashboard-main .source-card:active,
+.dashboard-main .register-card:active,
+.dashboard-main .general-card:active,
+.dashboard-main .notification-card:active,
+.dashboard-main .tracking-kpis>article:active,
+.dashboard-main .history-kpis>article:active,
+.dashboard-main .settings-kpis>article:active,
+.settings-page .backup-overview article:active,
+.settings-page .backup-next:active,
+.settings-page .backup-history:active{
+  transform:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}

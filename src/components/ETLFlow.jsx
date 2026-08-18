@@ -1,10 +1,10 @@
 import { Fragment } from 'react';
-import { Check, X, ArrowRight, Database, Warehouse } from 'lucide-react';
+import { Check, X, ArrowRight, Database, Landmark } from 'lucide-react';
 
 const stages = [
   ['SOURCES', Database, '10 / 12', '83%', true],
   ['STAGING', Database, '9 / 10', '90%', true],
-  ['DATA WAREHOUSE', Warehouse, '8 / 10', '80%', false],
+  ['DATA WAREHOUSE', Landmark, '8 / 10', '80%', false],
 ];
 
 export default function ETLFlow({ onViewDetails }) {

@@ -1,0 +1,2 @@
+namespace MonitoringETL.Api.Models;
+public sealed class SuiviChargement{public int Id{get;set;}public DateTime DateHeureETL{get;set;}public bool Staging{get;set;}public bool Entrepot{get;set;}public int IdConnexion{get;set;}public bool EstDonneeTest{get;set;}public DateTime DateCreation{get;set;}=DateTime.UtcNow;public Connexion Connexion{get;set;}=null!;public ICollection<Alerte> Alertes{get;set;}=[];}

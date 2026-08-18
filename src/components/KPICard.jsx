@@ -1,13 +1,11 @@
-import { Database, Check, Warehouse, TrendingUp, X } from 'lucide-react';
+import { Database, Check, Landmark, TrendingUp, X } from 'lucide-react';
 
-const iconMap = { database: Database, check: Check, warehouse: Warehouse, trend: TrendingUp };
-const imageMap = { warehouse: '/icons/data-warehouse.png' };
+const iconMap = { database: Database, check: Check, warehouse: Landmark, trend: TrendingUp };
 
 export default function KPICard({ type, title, children, progress, color = 'blue' }) {
   const Icon = iconMap[type];
-  const image = imageMap[type];
   return <article className="card kpi-card">
-    <div className={`kpi-icon ${color}`}>{image ? <img src={image} alt="" /> : <Icon />}</div>
+    <div className={`kpi-icon ${color}`}><Icon /></div>
     <div className="kpi-body"><h3>{title}</h3>{children}</div>
     {progress && <footer><b>{progress.label}</b><small>{progress.sub}</small><i><span style={{ width: progress.width }} /></i></footer>}
   </article>;

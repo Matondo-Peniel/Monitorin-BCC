@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { AlertTriangle, Bell, CalendarDays, Check, ChevronDown, Clock3, Database, FileText, Globe2, History, Info, Languages, Laptop, LockKeyhole, Mail, Monitor, Pencil, ShieldCheck, Upload, User, UserCircle } from 'lucide-react';
+import { AlertTriangle, Bell, CalendarDays, Check, Clock3, Database, FileText, Globe2, History, Info, Languages, Laptop, LockKeyhole, Mail, Monitor, Pencil, ShieldCheck, Upload, User, UserCircle } from 'lucide-react';
 import bccLogo from '../assets/bcc-logo.png';
 import defaultPortrait from '../assets/profile-portrait.png';
 
@@ -23,11 +23,8 @@ const activities = [
 ];
 
 export default function ProfilePage({ onNavigate }) {
-  const [date, setDate] = useState('2025-05-14');
-  const [dateOpen, setDateOpen] = useState(false);
   const [portrait, setPortrait] = useState(defaultPortrait);
   const fileRef = useRef(null);
-  const dateLabel = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${date}T12:00:00`));
   const changePhoto = event => {
     const file = event.target.files?.[0];
     if (file && file.size <= 2 * 1024 * 1024) setPortrait(URL.createObjectURL(file));
@@ -36,7 +33,7 @@ export default function ProfilePage({ onNavigate }) {
   return <div className="profile-page">
     <header className="profile-header">
       <div><h1><User /> Mon profil</h1><p>Consultez vos informations de profil. <b>Seule votre photo peut être modifiée.</b></p></div>
-      <div className="profile-head-actions"><div className="date-control"><button className={`date-box ${dateOpen ? 'active' : ''}`} onClick={() => setDateOpen(!dateOpen)}><CalendarDays /><span>{dateLabel}</span><ChevronDown /></button>{dateOpen && <div className="date-popover"><b>Choisir une date</b><input type="date" value={date} onChange={e => setDate(e.target.value)} /><button onClick={() => setDateOpen(false)}>Valider</button></div>}</div><div className="profile-logo"><img src={bccLogo} alt="" /><b>BANQUE CENTRALE<br />DU CONGO</b></div></div>
+      <div className="profile-head-actions"><div className="profile-logo"><img src={bccLogo} alt="" /><b>BANQUE CENTRALE<br />DU CONGO</b></div></div>
     </header>
 
     <div className="profile-top-grid">

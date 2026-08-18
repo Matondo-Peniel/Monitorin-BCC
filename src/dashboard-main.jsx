@@ -1,1 +1,1 @@
-import React from'react';import{createRoot}from'react-dom/client';import App from'./App';createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);
+import React from'react';import{createRoot}from'react-dom/client';import App from'./App';import LoginPage from'./components/LoginPage';import'./login-page.css';const login=new URLSearchParams(location.search).has('login');createRoot(document.getElementById('root')).render(<React.StrictMode>{login?<LoginPage onLogin={()=>location.href=location.pathname}/>:<App/>}</React.StrictMode>);

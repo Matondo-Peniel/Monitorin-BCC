@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, BarChart3, CalendarDays, Check, ChevronDown, Clock3, CloudUpload, Database, Info, RefreshCw, Settings, Shuffle, Warehouse, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, Check, ChevronDown, Clock3, CloudUpload, Database, Info, Landmark, RefreshCw, Settings, X } from 'lucide-react';
 import bccLogo from '../assets/bcc-logo.png';
 
 const recent = [
@@ -13,7 +13,7 @@ const recent = [
 const stages = [
   ['SOURCES', '10 sources', Database, true],
   ['STAGING AREA', 'Zone d’intégration', Database, true],
-  ['DATA WAREHOUSE', 'Entrepôt de données', Warehouse, true],
+  ['DATA WAREHOUSE', 'Entrepôt de données', Landmark, true],
   ['TABLEAUX DE BORD', 'Reporting & Analytics', BarChart3, null],
 ];
 
@@ -48,7 +48,7 @@ export default function FluxETLPage({ onNavigate }) {
 
     <section className="flux-grid">
       <section className="card stage-status"><h2>Statut par étape</h2>{[
-        [Shuffle, 'Sources → Staging', 'Chargement des données sources', '10 / 10', 'Réussi', 100],
+        [ArrowRight, 'Sources → Staging', 'Chargement des données sources', '10 / 10', 'Réussi', 100],
         [Database, 'Staging → Entrepôt', 'Intégration vers le Data Warehouse', '8 / 10', 'Échoué', 80],
         [Settings, 'Transformations', 'Nettoyage & transformation des données', '8 / 10', 'Réussi', 80],
         [CloudUpload, 'Chargement DW', 'Insertion dans l’entrepôt', '8 / 10', 'Réussi', 80],
