@@ -51,3 +51,25 @@
 .bcc-field>div:focus-within,
 .bcc-field>div:focus-within input,
 .bcc-field>div:focus-within button{background-color:#fff}
+
+/* Le formulaire de première ouverture reste dans la hauteur utile du navigateur. */
+.bcc-login-page:has(input[autocomplete="name"]){padding-block:clamp(20px,4vh,38px)}
+.bcc-login-shell:has(input[autocomplete="name"]){min-height:min(620px,calc(100vh - 76px))}
+.bcc-login-form:has(input[autocomplete="name"]){padding-block:clamp(28px,4vh,44px)}
+.bcc-login-form:has(input[autocomplete="name"]) header{margin-bottom:20px}
+.bcc-login-form:has(input[autocomplete="name"]) .bcc-field{gap:6px;margin-bottom:12px}
+.bcc-login-form:has(input[autocomplete="name"]) .bcc-field>div{height:52px}
+.bcc-login-form:has(input[autocomplete="name"]) .bcc-login-help{margin-top:14px}
+
+@media(max-height:760px) and (min-width:801px){
+  .bcc-login-page:has(input[autocomplete="name"]){padding-block:16px}
+  .bcc-login-shell:has(input[autocomplete="name"]){min-height:0;height:calc(100vh - 32px)}
+  .bcc-login-shell:has(input[autocomplete="name"]) .bcc-login-intro{padding-block:32px}
+  .bcc-login-form:has(input[autocomplete="name"]){padding-block:24px}
+  .bcc-login-form:has(input[autocomplete="name"]) h2{font-size:34px}
+  .bcc-login-form:has(input[autocomplete="name"]) header{margin-bottom:14px}
+  .bcc-login-form:has(input[autocomplete="name"]) .bcc-field{margin-bottom:9px}
+  .bcc-login-form:has(input[autocomplete="name"]) .bcc-field>div{height:48px}
+  .bcc-login-form:has(input[autocomplete="name"]) .bcc-login-submit{height:52px}
+  .bcc-login-form:has(input[autocomplete="name"]) .bcc-login-help{margin-top:10px}
+}

@@ -1,1 +1,23 @@
-<div id="root"></div><script type="module" src="/src/dashboard-main.jsx"></script>
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e8f8ff" />
+    <title>Monitoring des processus ETL — BCC</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const publishedBase = location.hostname.endsWith('github.io') ? '/Monitorin-BCC/dist' : '/dist';
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = `${publishedBase}/assets/app.css`;
+      document.head.appendChild(stylesheet);
+      const application = document.createElement('script');
+      application.type = 'module';
+      application.src = `${publishedBase}/assets/app.js`;
+      document.body.appendChild(application);
+    </script>
+  </body>
+</html>
