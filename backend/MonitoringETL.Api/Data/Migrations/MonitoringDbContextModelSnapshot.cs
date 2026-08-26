@@ -63,6 +63,13 @@ namespace MonitoringETL.Api.Data.Migrations
                             ConcurrencyStamp = "role-consultant-v1",
                             Name = "CONSULTANT",
                             NormalizedName = "CONSULTANT"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            ConcurrencyStamp = "role-analyste-v1",
+                            Name = "ANALYSTE",
+                            NormalizedName = "ANALYSTE"
                         });
                 });
 
@@ -473,6 +480,30 @@ namespace MonitoringETL.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("MonitoringETL.Api.Models.UserPreference", b =>
+                {
+                    b.Property<Guid>("IdUtilisateur")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateModification")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("GeneralJson")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NotificationsJson")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("IdUtilisateur");
+
+                    b.ToTable("UserPreferences", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -565,6 +596,17 @@ namespace MonitoringETL.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Connexion");
+                });
+
+            modelBuilder.Entity("MonitoringETL.Api.Models.UserPreference", b =>
+                {
+                    b.HasOne("MonitoringETL.Api.Models.ApplicationUser", "Utilisateur")
+                        .WithMany()
+                        .HasForeignKey("IdUtilisateur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Utilisateur");
                 });
 
             modelBuilder.Entity("MonitoringETL.Api.Models.ApplicationUser", b =>

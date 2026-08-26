@@ -1,40 +1,291 @@
-import { useMemo, useState } from 'react';
-import { AlertTriangle, ArrowLeft, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Clock3, Database, Download, Eye, FileText, Filter, Info, Landmark, Search, UserRound, X } from 'lucide-react';
-import bccLogo from '../assets/bcc-logo.png';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  Download,
+  Eye,
+  FileText,
+  Filter,
+  Info,
+  RefreshCw,
+  Search,
+  X,
+  XCircle,
+} from 'lucide-react';
+import { api } from '../api';
+import { useActiveDate } from '../active-date';
+import GlobalDateControls from './GlobalDateControls';
+import BccBrand from './BccBrand';
+import CustomSelect from './CustomSelect';
+import Pagination from './Pagination';
 
-const alertRows = [
-  ['14/05/2025 07:31:56','Critique','DW (Chargement)','Le chargement vers le Data Warehouse a échoué.\nAucune donnée n’a été insérée.','Non résolue','Admin ETL','dw'],
-  ['14/05/2025 07:30:15','Important','Staging (Intégration)','Le temps d’exécution du chargement Staging\n(00:12:45) dépasse le seuil défini (00:10:00).','Non résolue','Admin ETL','db'],
-  ['13/05/2025 07:30:42','Important','DW (Chargement)','Le temps d’exécution du chargement DW\n(00:08:32) dépasse le seuil défini (00:07:00).','Résolue','Florin Mayala','dw'],
-  ['13/05/2025 07:21:11','Info','Staging (Connexion)','Connexion à la base de données réussie.','Résolue','Système','db'],
-  ['12/05/2025 07:29:18','Critique','Staging (Intégration)','Erreur lors de l’intégration des données :\ncontrainte de clé étrangère violée.','Non résolue','Admin ETL','db'],
-  ['11/05/2025 07:20:05','Important','Source (Lecture)','Impossible de lire les données de la source.\nVérifiez la disponibilité de la base.','Résolue','Admin ETL','db'],
-  ['10/05/2025 07:18:34','Info','DW (Validation)','Validation des données terminée avec succès.','Résolue','Système','dw'],
-  ['10/05/2025 07:17:22','Info','Planification','Exécution du processus ETL planifiée démarrée.','Résolue','Système','calendar'],
+const dateTimeFormatter = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
+const levelMeta = {
+  CRITIQUE: { label: 'Critique', Icon: XCircle, className: 'ui-level--critical' },
+  IMPORTANT: { label: 'Important', Icon: AlertTriangle, className: 'ui-level--important' },
+  INFORMATIF: { label: 'Information', Icon: Info, className: 'ui-level--informative' },
+};
+
+const alertLevelOptions = [
+  { value: 'Tous', label: 'Tous les niveaux', icon: Filter },
+  { value: 'CRITIQUE', label: 'Critique', icon: XCircle, tone: 'is-danger' },
+  { value: 'IMPORTANT', label: 'Important', icon: AlertTriangle, tone: 'is-warning' },
+  { value: 'INFORMATIF', label: 'Information', icon: Info, tone: 'is-muted' },
 ];
 
-export default function ModulePage({type}) {
-  if(type==='Alertes') return <AlertsPage/>;
-  return <div className="module-page"><header><h1><FileText/>Rapports</h1><p>Consultez et exportez les rapports de performance ETL.</p></header><section className="module-reports">{['Synthèse quotidienne','Performance hebdomadaire','Incidents et alertes','Disponibilité des sources'].map(name=><article className="card" key={name}><span><FileText/></span><h2>{name}</h2><p>Mis à jour le 14 mai 2025</p><button onClick={()=>alert(`Export de « ${name} » préparé.`)}><Download/>Télécharger</button></article>)}</section></div>;
+const alertStateOptions = [
+  { value: 'Toutes', label: 'Tous les statuts', icon: CheckCircle2 },
+  { value: 'Ouvertes', label: 'Non résolues', icon: AlertCircle, tone: 'is-danger' },
+  { value: 'Résolues', label: 'Résolues', icon: CheckCircle2, tone: 'is-success' },
+];
+
+const formatDateTime = value => {
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.valueOf()) ? dateTimeFormatter.format(date) : '—';
+};
+
+const normalizedLevel = value => String(value || 'INFORMATIF').toUpperCase();
+const isResolved = alert => String(alert.statut || '').toUpperCase() === 'RESOLUE';
+
+export default function ModulePage({ type, user }) {
+  return type === 'Alertes'
+    ? <AlertsPage isAdmin={user?.roles?.includes('ADMINISTRATEUR')} />
+    : <ReportsPage />;
 }
 
-function AlertsPage(){
-  const [query,setQuery]=useState(''); const [level,setLevel]=useState('Tous'); const [filterOpen,setFilterOpen]=useState(false); const [dateOpen,setDateOpen]=useState(false); const [startDate,setStartDate]=useState('2025-05-01'); const [endDate,setEndDate]=useState('2025-05-14'); const [selected,setSelected]=useState(null); const [category,setCategory]=useState(null);
-  const filtered=useMemo(()=>alertRows.filter(row=>{const [day,month,year]=row[0].slice(0,10).split('/');const rowDate=`${year}-${month}-${day}`;return (level==='Tous'||row[1]===level)&&rowDate>=startDate&&rowDate<=endDate&&row.slice(0,6).join(' ').toLowerCase().includes(query.toLowerCase())}),[query,level,startDate,endDate]);
-  const exportCsv=()=>{const csv=['Date et heure,Niveau,Étape,Message,Statut,Assignée à',...filtered.map(row=>row.slice(0,6).map(value=>`"${value.replaceAll('"','""')}"`).join(','))].join('\n');const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.download='alertes-etl.csv';link.click();URL.revokeObjectURL(link.href)};
-  if(category) return <AlertCategoryView category={category} onBack={()=>setCategory(null)}/>;
-  return <div className="alerts-page">
-    <header className="alerts-header"><div className="alerts-title"><h1>Alertes</h1><p>Consultez et gérez les alertes générées par le processus ETL</p></div><div className="alerts-head-tools"><div className="alerts-date-wrap"><button className={`alerts-date ${dateOpen?'active':''}`} onClick={()=>{setDateOpen(open=>!open);setFilterOpen(false)}} aria-expanded={dateOpen}><CalendarDays/><span><small>Période</small><b>01 mai 2025 — 14 mai 2025</b></span><ChevronDown className={dateOpen?'open':''}/></button>{dateOpen&&<div className="alerts-date-menu"><header><CalendarDays/><div><b>Période des alertes</b><small>Sélectionnez un intervalle</small></div></header><div><label><span>Date de début</span><input type="date" value={startDate} max={endDate} onChange={event=>setStartDate(event.target.value)}/></label><label><span>Date de fin</span><input type="date" value={endDate} min={startDate} onChange={event=>setEndDate(event.target.value)}/></label></div><footer><button onClick={()=>{setStartDate('2025-05-01');setEndDate('2025-05-14')}}>Réinitialiser</button><button onClick={()=>setDateOpen(false)}>Appliquer</button></footer></div>}</div><div className="alerts-filter"><button className={filterOpen||level!=='Tous'?'active':''} onClick={()=>{setFilterOpen(open=>!open);setDateOpen(false)}} aria-expanded={filterOpen}><Filter/><span>Filtres</span>{level!=='Tous'&&<em>1</em>}<ChevronDown className={filterOpen?'open':''}/></button>{filterOpen&&<div className="alerts-filter-menu"><header><b>Niveau d’alerte</b>{level!=='Tous'&&<button onClick={()=>setLevel('Tous')}>Effacer</button>}</header>{['Tous','Critique','Important','Info'].map(item=><button className={level===item?'active':''} onClick={()=>{setLevel(item);setFilterOpen(false)}} key={item}><i className={item.toLowerCase()}/>{item}{level===item&&<Check/>}</button>)}</div>}</div><div className="alerts-brand" aria-label="Banque Centrale du Congo"><img src={bccLogo} alt=""/><b>BANQUE CENTRALE<br/>DU CONGO</b></div></div></header>
-    <section className="alert-kpis"><AlertKpi tone="critical" icon={<X/>} title="Alertes critiques" value="3" copy="Nécessitent une action immédiate" onOpen={()=>setCategory('Critique')}/><AlertKpi tone="important" icon={<AlertTriangle/>} title="Alertes importantes" value="5" copy="À traiter rapidement" onOpen={()=>setCategory('Important')}/><AlertKpi tone="info" icon={<Info/>} title="Alertes informatives" value="8" copy="Pour information" onOpen={()=>setCategory('Info')}/><AlertKpi tone="total" icon={<Check/>} title="Total des alertes" value="16" copy="Sur la période sélectionnée" onOpen={()=>setCategory('Tous')}/></section>
-    <section className="card alerts-list-card"><header><h2>Liste des alertes</h2><div><label><Search/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Rechercher une alerte..."/></label><button onClick={exportCsv}><Download/>Exporter</button></div></header><div className="alerts-table-wrap"><table><thead><tr><th>Date & heure <ChevronDown/></th><th>Niveau</th><th>Étape concernée</th><th>Message</th><th>Statut <ChevronDown/></th><th>Assignée à</th><th>Actions</th></tr></thead><tbody>{filtered.map(row=><tr key={row[0]}><td>{row[0]}</td><td><LevelBadge value={row[1]}/></td><td><span className="alert-stage"><StageIcon type={row[6]}/>{row[2]}</span></td><td className="alert-message">{row[3]}</td><td><span className={`alert-state ${row[4]==='Résolue'?'resolved':''}`}>{row[4]}</span></td><td>{row[5]}</td><td><button className="alert-view" onClick={()=>setSelected(row)} aria-label={`Consulter l’alerte du ${row[0]}`}><Eye/></button></td></tr>)}</tbody></table></div><footer><span>Affichage 1 à {filtered.length} sur 16 alertes</span><div><button disabled><ChevronLeft/></button><button className="current">1</button><button>2</button><button>3</button><button><ChevronRight/></button><select aria-label="Alertes par page"><option>10 par page</option></select></div></footer></section>
-    {selected&&<div className="alert-modal-backdrop" onMouseDown={event=>event.target===event.currentTarget&&setSelected(null)}><article className={`alert-modal alert-modal-v2 ${selected[1].toLowerCase()}`} role="dialog" aria-modal="true" aria-labelledby="alert-detail-title"><div className="alert-modal-accent"/><header><div className="alert-modal-symbol"><LevelIcon level={selected[1]}/></div><div><span className="alert-modal-kicker">Centre de surveillance ETL</span><h2 id="alert-detail-title">Détail de l’alerte</h2></div><button onClick={()=>setSelected(null)} aria-label="Fermer"><X/></button></header><div className="alert-modal-body"><div className="alert-modal-badges"><LevelBadge value={selected[1]}/><span className={`alert-state ${selected[4]==='Résolue'?'resolved':''}`}>{selected[4]==='Résolue'?<CheckCircle2/>:<Clock3/>}{selected[4]}</span></div><section className="alert-modal-message"><span><Info/></span><div><small>MESSAGE DE L’ALERTE</small><p>{selected[3]}</p></div></section><div className="alert-modal-details"><DetailItem icon={<CalendarDays/>} label="Date et heure" value={selected[0]}/><DetailItem icon={<StageIcon type={selected[6]}/>} label="Étape concernée" value={selected[2]}/><DetailItem icon={<UserRound/>} label="Assignée à" value={selected[5]}/><DetailItem icon={<CheckCircle2/>} label="État du traitement" value={selected[4]}/></div></div><footer><span>ID · ALT-{selected[0].replace(/\D/g,'').slice(0,8)}</span><button onClick={()=>setSelected(null)}><Check/>J’ai compris</button></footer></article></div>}
-  </div>;
-}
-function AlertKpi({tone,icon,title,value,copy,onOpen}){return <article className={`alert-kpi ${tone}`} role="button" tabIndex="0" onClick={onOpen} onKeyDown={event=>(event.key==='Enter'||event.key===' ')&&onOpen()}><span>{icon}</span><div><b>{title}</b><strong>{value}</strong><small>{copy}</small></div><button aria-label={`Voir ${title}`} tabIndex="-1"><ArrowRight/></button></article>}
-function LevelBadge({value}){return <span className={`alert-level ${value.toLowerCase()}`}>{value}</span>}
-function LevelIcon({level}){return level==='Critique'?<X/>:level==='Important'?<AlertTriangle/>:<Info/>}
-function StageIcon({type}){return type==='dw'?<Landmark/>:type==='calendar'?<CalendarDays/>:<Database/>}
-function DetailItem({icon,label,value}){return <div className="alert-detail-item"><span>{icon}</span><div><small>{label}</small><strong>{value}</strong></div></div>}
+function AlertsPage({ isAdmin }) {
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [level, setLevel] = useState('Tous');
+  const [state, setState] = useState('Toutes');
+  const [selected, setSelected] = useState(null);
+  const [actionError, setActionError] = useState('');
+  const [resolving, setResolving] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-const categoryMeta={Critique:{tone:'critical',title:'Alertes critiques',subtitle:'Incidents nécessitant une intervention immédiate',count:3,icon:<X/>},Important:{tone:'important',title:'Alertes importantes',subtitle:'Événements à analyser et traiter rapidement',count:5,icon:<AlertTriangle/>},Info:{tone:'info',title:'Alertes informatives',subtitle:'Événements de suivi et confirmations système',count:8,icon:<Info/>},Tous:{tone:'total',title:'Toutes les alertes',subtitle:'Vue consolidée de l’activité de surveillance ETL',count:16,icon:<Check/>}};
-function AlertCategoryView({category,onBack}){const meta=categoryMeta[category];const rows=category==='Tous'?alertRows:alertRows.filter(row=>row[1]===category);const resolved=rows.filter(row=>row[4]==='Résolue').length;return <div className={`alert-category-page ${meta.tone}`}><header className="alert-category-header"><button onClick={onBack}><ArrowLeft/>Retour aux alertes</button><div className="alert-category-brand"><img src={bccLogo} alt=""/><b>BANQUE CENTRALE<br/>DU CONGO</b></div></header><section className="alert-category-hero"><div className="alert-category-icon">{meta.icon}</div><div><small>CENTRE DE SURVEILLANCE ETL</small><h1>{meta.title}</h1><p>{meta.subtitle}</p></div><strong>{meta.count}<small>alertes sur la période</small></strong></section><section className="alert-category-stats"><article><span><FileText/></span><div><small>Alertes affichées</small><b>{rows.length}</b></div></article><article><span><Clock3/></span><div><small>Non résolues</small><b>{rows.length-resolved}</b></div></article><article><span><CheckCircle2/></span><div><small>Résolues</small><b>{resolved}</b></div></article></section><section className="alert-category-content"><header><div><h2>Événements de la catégorie</h2><p>Informations détaillées et état de traitement</p></div><span>{rows.length} résultat{rows.length>1?'s':''}</span></header><div className="alert-category-grid">{rows.map(row=><article className="alert-event-card" key={row[0]}><header><LevelBadge value={row[1]}/><span className={`alert-state ${row[4]==='Résolue'?'resolved':''}`}>{row[4]}</span></header><div className="alert-event-stage"><span><StageIcon type={row[6]}/></span><div><small>ÉTAPE CONCERNÉE</small><b>{row[2]}</b></div></div><p>{row[3]}</p><footer><span><CalendarDays/>{row[0]}</span><span><UserRound/>{row[5]}</span></footer></article>)}</div></section></div>}
+  const loadAlerts = useCallback(async () => {
+    const startedAt = Date.now();
+    setLoading(true);
+    setError('');
+    try {
+      const items = await api.alerts();
+      setAlerts(Array.isArray(items) ? items : []);
+    } catch (exception) {
+      setError(exception.message);
+    } finally {
+      const remaining = Math.max(0, 1000 - (Date.now() - startedAt));
+      if (remaining) await new Promise(resolve => window.setTimeout(resolve, remaining));
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadAlerts(); }, [loadAlerts]);
+
+  const filteredRows = useMemo(() => {
+    const search = query.trim().toLocaleLowerCase('fr-FR');
+    return alerts.filter(alert => {
+      const matchesLevel = level === 'Tous' || normalizedLevel(alert.niveau) === level;
+      const matchesState = state === 'Toutes'
+        || (state === 'Ouvertes' && !isResolved(alert))
+        || (state === 'Résolues' && isResolved(alert));
+      const searchable = [alert.message, alert.etape, alert.niveau, alert.statut]
+        .filter(Boolean)
+        .join(' ')
+        .toLocaleLowerCase('fr-FR');
+      return matchesLevel && matchesState && (!search || searchable.includes(search));
+    });
+  }, [alerts, level, query, state]);
+  const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const rows = useMemo(() => filteredRows.slice((page - 1) * pageSize, page * pageSize), [filteredRows, page]);
+  useEffect(() => { setPage(1); }, [level, query, state]);
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
+
+  const counts = useMemo(() => ({
+    total: alerts.length,
+    critical: alerts.filter(alert => normalizedLevel(alert.niveau) === 'CRITIQUE').length,
+    important: alerts.filter(alert => normalizedLevel(alert.niveau) === 'IMPORTANT').length,
+    resolved: alerts.filter(isResolved).length,
+  }), [alerts]);
+
+  const resolve = async () => {
+    if (!selected || isResolved(selected)) return;
+    setResolving(true);
+    setActionError('');
+    try {
+      await api.resolveAlert(selected.idAlerte);
+      const updated = { ...selected, statut: 'RESOLUE', dateResolution: new Date().toISOString() };
+      setSelected(updated);
+      setAlerts(items => items.map(alert => alert.idAlerte === updated.idAlerte ? updated : alert));
+    } catch (exception) {
+      setActionError(exception.message);
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  return <main className="ui-page">
+    <header className="ui-page-header ui-alerts-head">
+      <div className="ui-page-heading">
+        <div className="ui-eyebrow"><AlertCircle />Suivi opérationnel</div>
+        <h1>Alertes</h1>
+        <p>Consultez et traitez les alertes générées par le monitoring ETL.</p>
+      </div>
+      <div className="module-header-actions">
+        <button className="refresh" type="button" onClick={loadAlerts} disabled={loading}>
+          <RefreshCw className={loading ? 'spin' : ''} />{loading ? 'Actualisation…' : 'Actualiser'}
+        </button>
+        <BccBrand className="module-brand" compact />
+      </div>
+    </header>
+
+    <section className="ui-kpi-grid" aria-label="Synthèse des alertes">
+      <Metric icon={AlertCircle} title="Alertes enregistrées" value={counts.total} note="Toutes priorités confondues" />
+      <Metric icon={XCircle} tone="danger" title="Alertes critiques" value={counts.critical} note="Nécessitent une attention immédiate" />
+      <Metric icon={AlertTriangle} tone="warning" title="Alertes importantes" value={counts.important} note="À analyser par l’équipe ETL" />
+      <Metric icon={CheckCircle2} tone="success" title="Alertes résolues" value={counts.resolved} note="Traitées par un administrateur" />
+    </section>
+
+    <section className="ui-panel">
+      <header className="ui-table-card-head ui-alerts-table-head">
+        <div>
+          <h2 className="ui-panel-title">Liste des alertes</h2>
+          <p className="ui-panel-copy">{filteredRows.length} alerte{filteredRows.length > 1 ? 's' : ''} affichée{filteredRows.length > 1 ? 's' : ''}</p>
+        </div>
+        <div className="ui-toolbar" aria-label="Filtres des alertes">
+          <label className="ui-field ui-field--search">
+            <Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Rechercher un message…" />
+          </label>
+          <CustomSelect value={level} onChange={setLevel} options={alertLevelOptions} icon={Filter} ariaLabel="Niveau d’alerte" className="alerts-filter-select" />
+          <CustomSelect value={state} onChange={setState} options={alertStateOptions} icon={CheckCircle2} ariaLabel="Statut de résolution" className="alerts-filter-select" />
+        </div>
+      </header>
+
+      {error ? <ErrorState message={`Impossible de charger les alertes : ${error}`} /> : loading ? <EmptyState title="Chargement des alertes" message="Lecture des alertes réellement enregistrées…" /> : <>
+        <div className="ui-table-wrap">
+          <table className="ui-table">
+            <thead><tr><th>Date et heure</th><th>Niveau</th><th>Étape</th><th>Message</th><th>Statut</th><th aria-label="Actions" /></tr></thead>
+            <tbody>{rows.map(alert => <tr key={alert.idAlerte}>
+              <td><strong>{formatDateTime(alert.dateHeureAlerte)}</strong></td>
+              <td><AlertLevel value={alert.niveau} /></td>
+              <td>{alert.etape || '—'}</td>
+              <td className="ui-cell-message">{alert.message || '—'}</td>
+              <td><AlertStatus alert={alert} /></td>
+              <td><button className="ui-button ui-icon-button" type="button" title="Voir le détail" aria-label={`Voir le détail de l’alerte du ${formatDateTime(alert.dateHeureAlerte)}`} onClick={() => { setSelected(alert); setActionError(''); }}><Eye /></button></td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+        {!rows.length && <EmptyState title="Aucune alerte trouvée" message="Modifiez les filtres ou actualisez les données." />}
+        <Pagination currentPage={page} totalPages={pageCount} totalItems={filteredRows.length} pageSize={pageSize} itemLabel="alerte" disabled={loading} onPageChange={setPage} />
+      </>}
+    </section>
+
+    {selected && <div className="ui-modal-overlay" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !resolving) setSelected(null); }}>
+      <section className="ui-modal" role="dialog" aria-modal="true" aria-labelledby="alert-detail-title">
+        <header className="ui-modal-head">
+          <div><h2 id="alert-detail-title">Détail de l’alerte</h2><p className="ui-panel-copy">Informations issues du monitoring ETL</p></div>
+          <button className="ui-button ui-icon-button" type="button" title="Fermer" aria-label="Fermer le détail" disabled={resolving} onClick={() => setSelected(null)}><X /></button>
+        </header>
+        <div className="ui-modal-body">
+          <dl className="ui-detail-list">
+            <div><dt>Niveau</dt><dd><AlertLevel value={selected.niveau} /></dd></div>
+            <div><dt>Statut</dt><dd><AlertStatus alert={selected} /></dd></div>
+            <div><dt>Étape</dt><dd>{selected.etape || '—'}</dd></div>
+            <div><dt>Date de l’alerte</dt><dd>{formatDateTime(selected.dateHeureAlerte)}</dd></div>
+            {selected.dateResolution && <div><dt>Date de résolution</dt><dd>{formatDateTime(selected.dateResolution)}</dd></div>}
+          </dl>
+          <div className="ui-message-box">{selected.message || 'Aucun message renseigné.'}</div>
+          {actionError && <p className="ui-inline-error">{actionError}</p>}
+          {!isResolved(selected) && !isAdmin && <p className="ui-message-box">Seul un administrateur peut marquer cette alerte comme résolue.</p>}
+        </div>
+        <footer className="ui-modal-foot">
+          <button className="ui-button ui-button--secondary" type="button" disabled={resolving} onClick={() => setSelected(null)}>Fermer</button>
+          {!isResolved(selected) && isAdmin && <button className="ui-button ui-button--primary" type="button" disabled={resolving} onClick={resolve}><CheckCircle2 />{resolving ? 'Résolution…' : 'Marquer comme résolue'}</button>}
+        </footer>
+      </section>
+    </div>}
+  </main>;
+}
+
+function ReportsPage() {
+  const { activeDate: date } = useActiveDate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const download = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const file = await api.downloadExecutionsReport(date);
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapport-executions-${date}.csv`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (exception) {
+      setError(exception.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return <main className="ui-page">
+    <header className="ui-page-header">
+      <div className="ui-page-heading">
+        <div className="ui-eyebrow"><FileText />Exploitation des données</div>
+        <h1>Rapports</h1>
+        <p>Exportez les exécutions réellement enregistrées pour la date de votre choix.</p>
+      </div>
+      <div className="ui-header-actions"><GlobalDateControls /><BccBrand className="module-brand" compact /></div>
+    </header>
+    <div className="ui-report-layout">
+      <section className="ui-panel ui-report-hero">
+        <span><FileText /></span>
+        <h2>Rapport quotidien des exécutions</h2>
+        <p>Le fichier CSV reprend les états Staging et Data Warehouse disponibles dans la base de monitoring pour la journée sélectionnée.</p>
+      </section>
+      <section className="ui-panel ui-report-form">
+        <h2>Préparer l’export</h2>
+        <p>Choisissez une date, puis générez le fichier.</p>
+        <p className="ui-panel-copy">La date active est utilisée pour générer ce rapport : <strong>{date}</strong>.</p>
+        {error && <p className="ui-inline-error">{error}</p>}
+        <button className="ui-button ui-button--primary" type="button" disabled={loading || !date} onClick={download}><Download />{loading ? 'Génération…' : 'Télécharger le rapport CSV'}</button>
+      </section>
+    </div>
+  </main>;
+}
+
+function Metric({ icon: Icon, title, value, note, tone = '' }) {
+  return <article className="ui-kpi-card"><span className={`ui-icon-wrap ${tone ? `is-${tone}` : ''}`}><Icon /></span><div><span className="ui-kpi-label">{title}</span><strong className="ui-kpi-value">{value}</strong><small className="ui-kpi-note">{note}</small></div></article>;
+}
+
+function AlertLevel({ value }) {
+  const meta = levelMeta[normalizedLevel(value)] || levelMeta.INFORMATIF;
+  const { Icon } = meta;
+  return <span className={`ui-level ${meta.className}`}><Icon />{meta.label}</span>;
+}
+
+function AlertStatus({ alert }) {
+  return isResolved(alert)
+    ? <span className="ui-status ui-status--success"><CheckCircle2 />Résolue</span>
+    : <span className="ui-status ui-status--danger"><AlertCircle />Non résolue</span>;
+}
+
+function EmptyState({ title, message }) {
+  return <div className="ui-empty-state"><Info /><strong>{title}</strong><p>{message}</p></div>;
+}
+
+function ErrorState({ message }) {
+  return <div className="ui-error-state"><AlertTriangle /><strong>Chargement indisponible</strong><p>{message}</p></div>;
+}

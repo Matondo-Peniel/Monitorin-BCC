@@ -1,31 +1,65 @@
-import { useMemo, useState } from 'react';
-import { ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, Database, Download, FileText, Filter, Landmark, RefreshCw, Search, X } from 'lucide-react';
-import bccLogo from '../assets/bcc-logo.png';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Check, Database, Landmark, TrendingUp, X } from 'lucide-react';
+import { api } from '../api';
+import { addDays } from '../date';
+import { useActiveDate } from '../active-date';
+import GlobalDateControls from './GlobalDateControls';
+import LoadingTable from './LoadingTable';
+import BccBrand from './BccBrand';
 
-const rows = [
- ['01','Core Banking','07:15:22',true,true,'00:04:32',true],['02','Change','07:18:43',true,true,'00:03:58',true],['03','Paiements','07:21:11',true,false,'00:02:10',false],['04','Trésorerie','07:22:05',true,true,'00:03:45',true],['05','Comptabilité','07:23:50',true,true,'00:04:01',true],['06','RH','07:25:41',true,true,'00:03:20',true],['07','Marchés','07:27:08',true,false,'00:01:58',false],['08','AGENCE','07:28:32',true,true,'00:02:47',true],['09','Audit','07:30:15',true,true,'00:03:12',true],['10','Data Externe','07:31:26',true,true,'00:02:31',true],['11','Crédits','07:33:04',true,true,'00:03:08',true],['12','Réserves','07:36:19',true,true,'00:02:54',true]
-];
-const StepState=({ok})=><span className={`tracking-step-state ${ok?'ok':'bad'}`}><i>{ok?<Check/>:<X/>}</i>{ok?'Réussi':'Échoué'}</span>;
-const Badge=({ok})=><span className={`tracking-badge ${ok?'ok':'bad'}`}>{ok?'Réussi':'Échoué'}</span>;
+const status = row => row.staging && row.entrepot ? 'Réussi' : row.staging ? 'Partiel' : 'Échoué';
 
-export default function AllLoadings(){
- const[query,setQuery]=useState(''),[status,setStatus]=useState('all'),[filtersOpen,setFiltersOpen]=useState(false),[dateOpen,setDateOpen]=useState(false),[date,setDate]=useState('2025-05-14'),[selected,setSelected]=useState(rows[2]),[page,setPage]=useState(1),[pageSize,setPageSize]=useState(10),[logs,setLogs]=useState(false),[notice,setNotice]=useState(''),[refreshing,setRefreshing]=useState(false);
- const filtered=useMemo(()=>rows.filter(r=>r[1].toLowerCase().includes(query.toLowerCase())&&(status==='all'||(status==='success'&&r[6])||(status==='failed'&&!r[6]))),[query,status]);
- const pages=Math.max(1,Math.ceil(filtered.length/pageSize)),safePage=Math.min(page,pages),shown=filtered.slice((safePage-1)*pageSize,safePage*pageSize);
- const dateLabel=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric'}).format(new Date(date+'T12:00:00'));
- const chooseStatus=value=>{setStatus(value);setPage(1)};
- const refreshData=()=>{setRefreshing(true);setDateOpen(false);setFiltersOpen(false);setTimeout(()=>setRefreshing(false),700)};
- const exportCsv=()=>{const data=['Source,Heure,Source-Staging,Staging-Entrepot,Duree,Statut',...filtered.map(r=>[r[1],r[2],r[3]?'Réussi':'Échoué',r[4]?'Réussi':'Échoué',r[5],r[6]?'Réussi':'Échoué'].join(','))].join('\n');const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8'}));link.download='suivi-chargements.csv';link.click();URL.revokeObjectURL(link.href);setNotice(`${filtered.length} chargement${filtered.length>1?'s':''} exporté${filtered.length>1?'s':''} avec succès`);setTimeout(()=>setNotice(''),3200)};
- return <div className="tracking-page">
-  <header className="tracking-header"><div><h1>Suivi des chargements</h1><p>Surveillez l’état des processus ETL de vos données</p></div><div className="tracking-head-actions"><div className="date-control tracking-date-control"><button className={`date-box tracking-date ${dateOpen?'active':''}`} aria-expanded={dateOpen} onClick={()=>{setDateOpen(!dateOpen);setFiltersOpen(false)}}><CalendarDays/><span>{dateLabel}</span><ChevronDown className={dateOpen?'tracking-chevron-open':''}/></button>{dateOpen&&<div className="date-popover tracking-date-pop"><b>Choisir une date</b><input type="date" value={date} onChange={e=>setDate(e.target.value)}/><button onClick={()=>{setDate('2025-05-14');setDateOpen(false)}}>Aujourd’hui</button></div>}</div><button className="tracking-refresh" onClick={refreshData}><RefreshCw className={refreshing?'spin':''}/>Actualiser</button><button className={filtersOpen?'active':''} onClick={()=>{setFiltersOpen(!filtersOpen);setDateOpen(false)}}><Filter/> Filtres</button><span className="tracking-logo"><img src={bccLogo} alt="Banque Centrale du Congo"/><b>BANQUE CENTRALE<br/>DU CONGO</b></span></div>{filtersOpen&&<div className="tracking-filter-pop"><b>Filtrer par statut</b><button className={status==='all'?'active':''} onClick={()=>chooseStatus('all')}>Tous</button><button className={status==='success'?'active':''} onClick={()=>chooseStatus('success')}>Réussis</button><button className={status==='failed'?'active':''} onClick={()=>chooseStatus('failed')}>Échoués</button></div>}</header>
-  <section className="tracking-kpis">
-   <article role="button" tabIndex="0" onClick={()=>chooseStatus('all')} className={status==='all'?'active':''}><span className="tracking-kpi-icon"><Database/></span><div><b>Sources chargées</b><strong>10</strong><small>sur 12</small></div><button aria-label="Toutes les sources"><FileText/></button></article>
-   <article role="button" tabIndex="0" onClick={()=>chooseStatus('success')} className={status==='success'?'active':''}><span className="tracking-kpi-icon green"><Check/></span><div><b>Source → Staging</b><div className="tracking-split"><span><strong>9</strong><small>Réussis</small></span><span><strong>1</strong><small>Échoué</small></span></div></div><button aria-label="Afficher les réussites"><ArrowRight/></button></article>
-   <article role="button" tabIndex="0" onClick={()=>chooseStatus('failed')} className={status==='failed'?'active':''}><span className="tracking-kpi-icon"><Landmark/></span><div><b>Staging → Entrepôt</b><div className="tracking-split"><span><strong>8</strong><small>Réussis</small></span><span><strong>2</strong><small>Échoués</small></span></div></div><button aria-label="Afficher les échecs"><ArrowRight/></button></article>
-   <article role="button" tabIndex="0" onClick={()=>chooseStatus('success')} className={`tracking-rate ${status==='success'?'active':''}`}><span className="tracking-donut"/><div><b>Taux de réussite global</b><strong>85%</strong><small>17 / 20 chargements<br/>réussis aujourd’hui</small></div></article>
-  </section>
-  <section className="tracking-content"><section className="card tracking-table-card"><div className="tracking-toolbar"><h2>Détail des chargements du 14 mai 2025</h2><div><label><Search/><input value={query} onChange={e=>{setQuery(e.target.value);setPage(1)}} placeholder="Rechercher une source..."/></label><button onClick={exportCsv}><Download/> Exporter</button></div></div><div className="table-scroll"><table><thead><tr><th>#</th><th>Source</th><th>Heure de début</th><th>Source → Staging</th><th>Staging → Entrepôt</th><th>Durée totale</th><th>Chargé par</th><th>Statut</th></tr></thead><tbody>{shown.map(r=><tr key={r[0]} className={selected?.[0]===r[0]?'selected':''} onClick={()=>setSelected(r)}><td>{r[0]}</td><td><span className="tracking-source"><Database/><b>{r[1]}</b></span></td><td>{r[2]}</td><td><StepState ok={r[3]}/></td><td><StepState ok={r[4]}/></td><td>{r[5]}</td><td>Planificateur</td><td><Badge ok={r[6]}/></td></tr>)}</tbody></table>{!shown.length&&<div className="tracking-empty"><Search/>Aucun chargement trouvé</div>}</div><footer className="tracking-footer"><span>Affichage {shown.length?(safePage-1)*pageSize+1:0} à {Math.min(safePage*pageSize,filtered.length)} sur {filtered.length} entrées</span><div><button disabled={safePage===1} onClick={()=>setPage(p=>Math.max(1,p-1))}><ChevronLeft/></button>{Array.from({length:pages},(_,i)=><button key={i} className={safePage===i+1?'current':''} onClick={()=>setPage(i+1)}>{i+1}</button>)}<button disabled={safePage===pages} onClick={()=>setPage(p=>Math.min(pages,p+1))}><ChevronDown className="next-icon"/></button><select value={pageSize} onChange={e=>{setPageSize(+e.target.value);setPage(1)}}><option value="5">5 par page</option><option value="10">10 par page</option><option value="12">12 par page</option></select></div></footer></section>
-   <aside className="card tracking-detail"><div className="tracking-detail-title"><h2>Détails du chargement</h2><button onClick={()=>setSelected(null)}><X/></button></div>{selected?<><div className="tracking-detail-source"><span><Database/></span><div><b>{selected[1]}</b><small>ID : SRC_{selected[1].slice(0,4).toUpperCase()}_001</small></div></div><dl><dt>Heure de début</dt><dd>{selected[2]}</dd><dt>Durée totale</dt><dd>{selected[5]}</dd><dt>Chargé par</dt><dd>Planificateur</dd><dt>Statut global</dt><dd><Badge ok={selected[6]}/></dd></dl><h3>Étapes du processus</h3><div className="tracking-process"><article><span className="ok"><Check/></span><div><b>Source → Staging</b><small>Début : {selected[2]}</small><small>Fin : 07:21:55 <em>Durée : 00:00:44</em></small></div><strong>Réussi</strong></article><article className={selected[4]?'':'failed'}><span className={selected[4]?'ok':'bad'}>{selected[4]?<Check/>:<X/>}</span><div><b>Staging → Entrepôt</b><small>Début : 07:21:55</small><small>Fin : 07:23:21 <em>Fin : 00:23:21</em></small><small>Durée : 00:01:26</small>{!selected[4]&&<p>Erreur : Contraintes de clé étrangère<br/>violées dans DIM_CLIENT</p>}</div><strong>{selected[4]?'Réussi':'Échoué'}</strong></article></div><button className="tracking-logs" onClick={()=>setLogs(true)}><FileText/> Voir les logs détaillés</button></>:<div className="tracking-no-detail">Sélectionnez un chargement</div>}</aside>
-  </section>{logs&&selected&&<div className="tracking-modal-back" onClick={()=>setLogs(false)}><section className="tracking-modal" onClick={e=>e.stopPropagation()}><button onClick={()=>setLogs(false)}><X/></button><FileText/><span className="tracking-modal-label">Journal d’exécution ouvert</span><h2>Logs détaillés — {selected[1]}</h2><pre>[07:21:11] Connexion à la source réussie{`\n`}[07:21:55] Chargement Staging terminé{`\n`}[07:23:21] {selected[4]?'Chargement Entrepôt terminé':'ERREUR : contrainte de clé étrangère dans DIM_CLIENT'}</pre></section></div>}{notice&&<div className="tracking-toast"><Check/><span><b>Export terminé</b><small>{notice}</small></span><button onClick={()=>setNotice('')}><X/></button></div>}
- </div>;
+export default function AllLoadings() {
+  const { activeDate } = useActiveDate();
+  const [data, setData] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const load = useCallback(async () => {
+    setRefreshing(true);
+    setError('');
+    try {
+      const [dashboard, sources] = await Promise.all([api.dashboard(activeDate), api.sources()]);
+      const ranges = await Promise.all(sources.map(source => api.history(source.idConnexion, activeDate, addDays(activeDate, 1), 1, 100)));
+      const mapped = ranges.flatMap((result, index) => result.donnees.map(item => ({
+        id: item.id,
+        source: sources[index].nomConnexion,
+        time: new Date(item.dateHeureETL).toLocaleTimeString('fr-FR'),
+        staging: item.staging ? 'Réussi' : 'Échoué',
+        entrepot: item.entrepot ? 'Réussi' : 'Échoué',
+        status: status(item),
+        dateHeureETL: item.dateHeureETL,
+      }))).sort((left, right) => new Date(right.dateHeureETL) - new Date(left.dateHeureETL));
+      setData(dashboard);
+      setRows(mapped);
+      setSelected(mapped[0] || null);
+    } catch (exception) {
+      setError(exception.message);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [activeDate]);
+
+  useEffect(() => { load(); }, [load]);
+  const selectedLabel = useMemo(() => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${activeDate}T12:00:00`)), [activeDate]);
+  const metrics = data?.metrics;
+  return <div className="tracking-page"><header className="tracking-header"><div><h1>Suivi des chargements</h1><p>Surveillez l’état des processus ETL de vos données</p></div><div className="tracking-header-actions"><GlobalDateControls onRefresh={load} refreshing={refreshing} className="tracking-toolbar" /><BccBrand className="tracking-brand" compact /></div></header>{error ? <section className="card tracking-empty">Impossible de charger les données : {error}</section> : !data ? <section className="card tracking-empty">Chargement des données enregistrées…</section> : <><section className="ui-kpi-grid tracking-kpis-alert-style" aria-label="Indicateurs de chargement"><Kpi icon={Database} title="Sources chargées" value={metrics.loadedSources} note={`${metrics.loadedSources} sur ${metrics.activeSources} sources actives`} /><Kpi icon={Check} tone="success" title="Source → Staging" value={`${metrics.stagingRate}%`} note={`${metrics.stagingSuccess} réussis · ${metrics.stagingFailed} échoués`} /><Kpi icon={Landmark} tone="cyan" title="Staging → Entrepôt" value={`${metrics.warehouseRate}%`} note={`${metrics.warehouseSuccess} réussis · ${metrics.warehouseFailed} échoués`} /><Kpi icon={TrendingUp} tone="navy" title="Taux de réussite global" value={`${metrics.globalRate}%`} note={`${metrics.total} chargement(s) · ${selectedLabel}`} /></section><section className="tracking-layout"><div className="tracking-main"><div className="card tracking-table"><LoadingTable loadings={rows} onSelect={setSelected} title={`Détail des chargements du ${selectedLabel}`} /></div></div><Detail row={selected} /></section></>}</div>;
+}
+
+function Kpi({ icon: Icon, title, value, note, tone = '' }) {
+  return <article className="ui-kpi-card">
+    <span className={`ui-icon-wrap ${tone ? `is-${tone}` : ''}`}><Icon /></span>
+    <div>
+      <span className="ui-kpi-label">{title}</span>
+      <strong className="ui-kpi-value">{value}</strong>
+      <small className="ui-kpi-note">{note}</small>
+    </div>
+  </article>;
+}
+
+function Detail({ row }) {
+  if (!row) return <aside className="card tracking-detail"><h2>Détails du chargement</h2><p className="tracking-empty">Aucun chargement enregistré pour cette date.</p></aside>;
+  const failed = row.status !== 'Réussi';
+  return <aside className="card tracking-detail"><h2>Détails du chargement</h2><h3><Database /> {row.source}</h3><dl><dt>Heure de début</dt><dd>{row.time}</dd><dt>Statut global</dt><dd><span className={`badge ${failed ? 'failed' : 'success'}`}>{row.status}</span></dd></dl><h3>Étapes du processus</h3><div className={`tracking-step ${row.staging === 'Réussi' ? '' : 'failed'}`}>{row.staging === 'Réussi' ? <Check /> : <X />}<b>Source → Staging</b><span>{row.staging}</span></div><div className={`tracking-step ${row.entrepot === 'Réussi' ? '' : 'failed'}`}>{row.entrepot === 'Réussi' ? <Check /> : <X />}<b>Staging → Entrepôt</b><span>{row.entrepot}</span></div>{failed && <p className="error">Une étape du chargement a échoué. Consultez les alertes associées pour le détail disponible.</p>}</aside>;
 }

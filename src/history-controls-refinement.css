@@ -1,0 +1,119 @@
+@media (min-width: 761px) {
+  .ui-page-header .ui-header-actions {
+    flex-wrap: nowrap;
+    align-items: flex-end;
+  }
+
+  .ui-page-header .global-date-controls {
+    align-items: flex-end;
+  }
+
+  .ui-page-header .date-box,
+  .ui-page-header .refresh {
+    min-height: 44px;
+    height: 44px !important;
+    border-radius: 9px;
+  }
+
+  .ui-history-table-head {
+    display: grid;
+    grid-template-columns: minmax(245px, 1fr) auto;
+    align-items: end;
+    gap: 20px;
+  }
+
+  .ui-history-table-head .ui-toolbar {
+    display: grid;
+    grid-template-columns: 220px 172px 148px 44px;
+    align-items: end;
+    gap: 10px;
+  }
+}
+
+.ui-history-table-head .ui-field--search,
+.ui-history-table-head .custom-select-trigger,
+.ui-history-table-head .ui-button {
+  min-height: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+
+.ui-history-table-head .ui-field--search {
+  min-width: 0;
+  padding: 0 13px;
+  border-color: #cfe2f4;
+  background: #fbfdff;
+}
+
+.ui-history-table-head .ui-field--search input {
+  color: #174b89;
+  font-size: 12px;
+}
+
+.ui-history-table-head .ui-field--search input::placeholder {
+  color: #7890ab;
+}
+
+.ui-history-table-head .custom-select {
+  min-width: 0;
+}
+
+.ui-history-table-head .custom-select-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ui-history-table-head .custom-select-trigger {
+  padding: 0 12px;
+  border-color: #cfe2f4;
+  background: #fbfdff;
+  font-size: 12px;
+}
+
+.ui-history-table-head .ui-button--secondary {
+  padding: 0 12px;
+  border-color: #cfe2f4;
+  background: #fbfdff;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ui-history-table-head .ui-icon-button {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+@media (max-width: 1120px) {
+  .ui-history-table-head {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ui-history-table-head .ui-toolbar {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ui-history-table-head .ui-field--search {
+    flex: 1 1 240px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ui-history-table-head .ui-toolbar,
+  .ui-history-table-head .custom-select,
+  .ui-history-table-head .ui-button {
+    width: 100%;
+  }
+
+  .ui-history-table-head .ui-icon-button {
+    width: 44px;
+    align-self: flex-end;
+  }
+}

@@ -1,0 +1,48 @@
+.ui-alerts-table-head .ui-toolbar {
+  align-items: center;
+  gap: 10px;
+}
+
+.ui-alerts-table-head .ui-field--search,
+.ui-alerts-table-head .alerts-filter-select {
+  min-width: 190px;
+}
+
+.ui-alerts-table-head .ui-field--search {
+  min-height: 44px;
+  border-color: #cfdef5;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.ui-alerts-table-head .ui-field--search:focus-within {
+  border-color: #81aef2;
+  box-shadow: 0 0 0 3px rgba(13, 94, 226, .12);
+}
+
+.ui-alerts-table-head .ui-field--search input {
+  color: #0a3e8f;
+  font-size: .86rem;
+}
+
+.ui-alerts-table-head .ui-field--search input::placeholder { color: #7890ad; }
+
+.ui-alerts-table-head .alerts-filter-select .custom-select-trigger {
+  min-height: 44px;
+  border-radius: 10px;
+}
+
+.ui-alerts-table-head .alerts-filter-select .custom-select-menu {
+  z-index: 95;
+  width: max(100%, 224px);
+  border-radius: 11px;
+}
+
+.ui-alerts-table-head .alerts-filter-select .custom-select-option { min-height: 42px; }
+
+@media (max-width: 760px) {
+  .ui-alerts-table-head .ui-toolbar { width: 100%; align-items: stretch; }
+  .ui-alerts-table-head .ui-field--search,
+  .ui-alerts-table-head .alerts-filter-select { width: 100%; min-width: 0; }
+}

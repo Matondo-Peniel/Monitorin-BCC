@@ -8,16 +8,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      const publishedBase = location.hostname.endsWith('github.io') ? '/Monitorin-BCC/dist' : '/dist';
-      const stylesheet = document.createElement('link');
-      stylesheet.rel = 'stylesheet';
-      stylesheet.href = `${publishedBase}/assets/app.css`;
-      document.head.appendChild(stylesheet);
-      const application = document.createElement('script');
-      application.type = 'module';
-      application.src = `${publishedBase}/assets/app.js`;
-      document.body.appendChild(application);
-    </script>
+    <script type="module" src="./src/dashboard-main.jsx"></script>
   </body>
 </html>

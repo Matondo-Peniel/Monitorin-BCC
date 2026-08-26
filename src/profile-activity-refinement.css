@@ -1,0 +1,49 @@
+.profile-page-v2 .profile-activity {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #ffffff 0%, #fbfdff 100%);
+}
+.profile-page-v2 .profile-activity::before {
+  content: '';
+  position: absolute;
+  top: 76px;
+  bottom: 28px;
+  left: 39px;
+  width: 2px;
+  border-radius: 99px;
+  background: linear-gradient(#8fc4ff 0%, #b9e6cc 48%, #ffe1a8 100%);
+}
+.profile-page-v2 .profile-activity article {
+  position: relative;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  min-height: 64px;
+  gap: 12px;
+  padding: 8px 9px 8px 0;
+  border-radius: 10px;
+  transition: background-color .18s ease, transform .18s ease;
+}
+.profile-page-v2 .profile-activity article:hover { background: #f5faff; transform: translateX(2px); }
+.profile-page-v2 .profile-activity article > span {
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(24, 85, 157, .12);
+}
+.profile-page-v2 .profile-activity article > span svg { width: 17px; }
+.profile-page-v2 .profile-activity article b { color: #123f85; font-size: 11px; }
+.profile-page-v2 .profile-activity article small { color: #6880a4; line-height: 1.45; }
+.profile-page-v2 .profile-activity article time { align-self: start; padding-top: 3px; color: #52729d; font-size: 10px; white-space: nowrap; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n + 1) > span { background: #e3f8eb; color: #159455; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n + 1) time { color: #159455; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n + 2) > span { background: #fff2df; color: #c8780b; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n + 2) time { color: #b86d09; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n + 3) > span { background: #e8f2ff; color: #0867e8; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n + 3) time { color: #0867e8; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n) > span { background: #f1ebff; color: #8057c8; }
+.profile-page-v2 .profile-activity article:nth-of-type(4n) time { color: #8057c8; }
+@media (max-width: 620px) {
+  .profile-page-v2 .profile-activity::before { left: 37px; }
+  .profile-page-v2 .profile-activity article { grid-template-columns: 38px minmax(0, 1fr); }
+  .profile-page-v2 .profile-activity article time { grid-column: 2; padding: 0; font-size: 9px; }
+}

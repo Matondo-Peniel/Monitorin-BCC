@@ -4,6 +4,8 @@ API ASP.NET Core 10, Entity Framework Core, Identity et SQL Server. Le frontend 
 
 ## Configuration locale
 
+Create `MonitoringETL.Api/appsettings.Local.json` from `appsettings.Local.json.example` to use your SQL Server instance. This ignored local file overrides the versioned connection string.
+
 La configuration versionnée utilise l’authentification Windows et ne contient aucun mot de passe. Pour une autre instance, définir localement la variable suivante sans la placer dans Git :
 
 ```powershell
@@ -11,6 +13,10 @@ $env:ConnectionStrings__MonitoringDatabase='Server=NOM_INSTANCE;Database=Monitor
 ```
 
 Avec un compte SQL applicatif, stocker la valeur avec `dotnet user-secrets`, jamais dans `appsettings.json` ni dans le frontend.
+
+## Invitations utilisateur
+
+En développement, la création d’une invitation retourne un code d’activation à saisir depuis l’écran **Activer une invitation**. En production, le code n’est volontairement pas retourné : configurer un service de messagerie transactionnelle avant d’utiliser les invitations.
 
 ## Création et mise à jour
 

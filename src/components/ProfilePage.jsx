@@ -1,57 +1,25 @@
-import { useRef, useState } from 'react';
-import { AlertTriangle, Bell, CalendarDays, Check, Clock3, Database, FileText, Globe2, History, Info, Languages, Laptop, LockKeyhole, Mail, Monitor, Pencil, ShieldCheck, Upload, User, UserCircle } from 'lucide-react';
-import bccLogo from '../assets/bcc-logo.png';
-import defaultPortrait from '../assets/profile-portrait.png';
+import { useEffect, useRef, useState } from 'react';
+import { Activity, CalendarDays, Camera, CheckCircle2, Clock3, FileImage, Info, KeyRound, LockKeyhole, Mail, ShieldCheck, Upload, User, UserCircle, Users } from 'lucide-react';
+import { api } from '../api';
+import BccBrand from './BccBrand';
 
-const profileRows = [
-  [User, 'Nom complet', 'MAYALA KILONGA NZAMBI FLORIN'],
-  [Mail, 'Email', 'florin.mayala@bcc.cd'],
-  [UserCircle, 'Identifiant', 'f.mayala'],
-  [ShieldCheck, 'Rôle', 'Analyste', 'tag'],
-  [Info, 'Statut du compte', 'Actif', 'active'],
-  [CalendarDays, 'Date de création du compte', '05/05/2025'],
-  [Clock3, 'Dernière connexion', '14/05/2025 à 07:32'],
-  [Languages, 'Langue', 'Français'],
-  [Globe2, 'Fuseau horaire', '(UTC+01:00) Bruxelles, Kinshasa'],
-];
+const date = value => value ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Jamais';
+const initials = name => String(name || 'Utilisateur').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+const role = roles => roles?.includes('ADMINISTRATEUR') ? 'Administrateur' : roles?.includes('ANALYSTE') ? 'Analyste' : roles?.[0] === 'CONSULTANT' ? 'Consultant' : 'Non défini';
+const action = value => ({ CONNEXION: 'Connexion réussie', DECONNEXION: 'Déconnexion', MODIFICATION_PHOTO_PROFIL: 'Photo de profil mise à jour', MODIFICATION_PREFERENCES: 'Préférences modifiées', MODIFICATION_MOT_DE_PASSE: 'Mot de passe modifié' }[value] || value);
 
-const activities = [
-  [Check, 'Connexion réussie', 'Connexion à la plateforme', '14/05/2025 07:32', 'green'],
-  [FileText, 'Rapport consulté', 'Rapport "Suivi des chargements"', '14/05/2025 07:20', 'blue'],
-  [Database, 'Source consultée', 'Source "Core Banking"', '14/05/2025 07:15', 'purple'],
-  [Bell, 'Alerte consultée', 'Alerte "Échec de chargement"', '14/05/2025 06:58', 'orange'],
-];
-
-export default function ProfilePage({ onNavigate }) {
-  const [portrait, setPortrait] = useState(defaultPortrait);
-  const fileRef = useRef(null);
-  const changePhoto = event => {
-    const file = event.target.files?.[0];
-    if (file && file.size <= 2 * 1024 * 1024) setPortrait(URL.createObjectURL(file));
+export default function ProfilePage({ user, onUserUpdate }) {
+  const [profile, setProfile] = useState(null), [error, setError] = useState(''), [uploading, setUploading] = useState(false);
+  const input = useRef(null);
+  useEffect(() => { api.profile().then(setProfile).catch(exception => setError(exception.message)); }, []);
+  const current = profile || user;
+  const upload = async event => {
+    const file = event.target.files?.[0]; event.target.value = '';
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) { setError('Choisissez une image JPG, PNG ou WebP de 2 Mo maximum.'); return; }
+    setUploading(true); setError('');
+    try { const next = await api.uploadProfilePhoto(file); const photoProfil = next.photoProfil ? `${next.photoProfil}?v=${Date.now()}` : null; const updated = { ...next, photoProfil }; setProfile(updated); onUserUpdate?.({ ...user, photoProfil }); } catch (exception) { setError(exception.message); } finally { setUploading(false); }
   };
-
-  return <div className="profile-page">
-    <header className="profile-header">
-      <div><h1><User /> Mon profil</h1><p>Consultez vos informations de profil. <b>Seule votre photo peut être modifiée.</b></p></div>
-      <div className="profile-head-actions"><div className="profile-logo"><img src={bccLogo} alt="" /><b>BANQUE CENTRALE<br />DU CONGO</b></div></div>
-    </header>
-
-    <div className="profile-top-grid">
-      <section className="card profile-main-card">
-        <div className="profile-photo-column"><div className="profile-photo"><img src={portrait} alt="Florin Mayala" /><button onClick={() => fileRef.current?.click()} aria-label="Modifier la photo"><Pencil /></button></div><input ref={fileRef} hidden type="file" accept="image/png,image/jpeg,image/gif" onChange={changePhoto} /><button className="photo-upload" onClick={() => fileRef.current?.click()}><Upload /><b>Changer ma photo</b><small>JPG, PNG ou GIF. Taille max 2Mo.</small></button></div>
-        <div className="profile-identity"><h2>MAYALA KILONGA NZAMBI FLORIN</h2><span className="profile-role">Analyste</span><dl>{profileRows.map(([Icon, label, value, type]) => <div key={label}><dt><Icon />{label}</dt><dd className={type || ''}>{type === 'active' && <i />}{value}</dd></div>)}</dl><div className="profile-admin-note"><Info /><span>Pour toute modification de vos informations (nom, email, rôle, accès...),<br />veuillez contacter l’administrateur de la plateforme.</span></div></div>
-      </section>
-
-      <aside className="card profile-account-card"><h2><span><ShieldCheck /></span>À propos de votre compte</h2><p>Les informations de votre compte sont gérées par l’administrateur afin d’assurer la sécurité de la plateforme.</p><h3><LockKeyhole />Gestion des accès</h3><p>L’attribution des rôles et des permissions est réservée uniquement à l’administrateur.</p><h3>Vos permissions actuelles</h3><ul><li>Consultation des sources</li><li>Suivi des chargements</li><li>Consultation des rapports</li></ul></aside>
-    </div>
-
-    <div className="profile-bottom-grid">
-      <section className="card profile-activity"><h2><span><History /></span>Activité récente</h2>{activities.map(([Icon, title, sub, time, tone]) => <article key={title}><span className={tone}><Icon /></span><div><b>{title}</b><small>{sub}</small></div><time className={tone}>{time}</time></article>)}<button onClick={() => onNavigate('Historique')}>Voir tout l’historique <span>→</span></button></section>
-      <section className="card profile-sessions"><h2><span><Monitor /></span>Sessions actives</h2><div className="session-table"><div className="session-head"><b>Appareil / Navigateur</b><b>Localisation</b><b>Connexion</b><b>Statut</b></div>{[
-        ['Windows / Chrome 125', 'Kinshasa, RDC', '14/05/2025 07:32', 'En ligne', true, '196.12.45.78'],
-        ['Android / Chrome Mobile', 'Kinshasa, RDC', '14/05/2025 06:15', 'Terminée', false, '102.16.8.15'],
-        ['Windows / Edge 124', 'Kinshasa, RDC', '13/05/2025 21:10', 'Terminée', false, '196.12.45.78'],
-      ].map(([device, place, connection, status, online, ip]) => <div className="session-row" key={device}><span><i className={online ? 'online' : ''} />{device}{online && <small>Session actuelle</small>}</span><span>{place}<small>{ip}</small></span><span>{connection}</span><span className={online ? 'session-online' : 'session-ended'}>{status}</span></div>)}</div><footer>Seules les sessions des 7 derniers jours sont affichées.</footer></section>
-    </div>
-  </div>;
+  const accountRows = [[User, 'Nom complet', current?.nomComplet || 'Non renseigné'], [Mail, 'Email', current?.email || 'Non renseigné'], [UserCircle, 'Identifiant', current?.identifiant || current?.email?.split('@')[0] || 'Non renseigné'], [ShieldCheck, 'Rôle', role(current?.roles), 'tag'], [CheckCircle2, 'Statut du compte', current?.actif ? 'Actif' : 'Inactif', current?.actif ? 'active' : 'inactive'], [CalendarDays, 'Compte créé le', date(current?.dateCreation)], [Clock3, 'Dernière connexion', date(current?.derniereConnexion)]];
+  return <main className="profile-page profile-page-v2"><header className="profile-header"><div><h1><User />Mon profil</h1><p>Consultez les informations de votre compte et vos accès à la plateforme.</p></div><BccBrand compact /></header>{error && <p className="profile-inline-error" role="alert">{error}</p>}<section className="profile-top-grid"><section className="card profile-main-card"><div className="profile-photo-column"><div className="profile-photo">{current?.photoProfil ? <img src={current.photoProfil} alt={`Profil de ${current.nomComplet}`} /> : <span className="profile-initials">{initials(current?.nomComplet)}</span>}<button type="button" aria-label="Changer ma photo" disabled={uploading} onClick={() => input.current?.click()}><Camera /></button></div><input ref={input} hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={upload} /><button type="button" className="profile-upload-button" disabled={uploading} onClick={() => input.current?.click()}><Upload />{uploading ? 'Envoi en cours…' : 'Changer ma photo'}</button><p className="profile-photo-help"><FileImage />JPG, PNG ou WebP · 2 Mo maximum.</p></div><div className="profile-identity"><h2>{current?.nomComplet || 'Utilisateur'}</h2><div className="profile-badges"><span className="profile-role">{role(current?.roles)}</span><span className={`profile-status ${current?.actif ? 'is-active' : ''}`}>• {current?.actif ? 'Actif' : 'Inactif'}</span></div><dl>{accountRows.map(([Icon, label, value, type]) => <div key={label}><dt><Icon />{label}</dt><dd className={type || ''}>{value}</dd></div>)}</dl><div className="profile-admin-note"><Info /><span>Vos droits sont appliqués à partir du rôle enregistré par la plateforme.</span></div></div></section><aside className="card profile-account-card"><h2><span><ShieldCheck /></span>À propos de votre compte</h2><p>Les informations affichées proviennent de votre session authentifiée.</p><h3><LockKeyhole />Gestion des accès</h3><p>Les permissions actuelles sont calculées par le backend selon votre rôle.</p><h3><KeyRound />Vos permissions actuelles</h3><ul>{current?.permissions?.length ? current.permissions.map(permission => <li key={permission}>{permission}</li>) : <li>Aucune permission détaillée disponible.</li>}</ul></aside></section><section className="profile-bottom-grid"><section className="card profile-activity"><h2><span><Activity /></span>Activité récente</h2>{current?.activites?.length ? current.activites.map(item => <article key={item.idJournal}><span className="blue"><Activity /></span><div><b>{action(item.action)}</b><small>{item.details || 'Action enregistrée dans le journal d’audit.'}</small></div><time>{date(item.dateHeure)}</time></article>) : <p className="profile-empty">Aucune activité n’est encore enregistrée pour ce compte.</p>}</section><section className="card profile-sessions"><h2><span><Users /></span>Sessions actives</h2><div className="profile-sessions-unavailable"><Info /><div><b>Sessions détaillées non disponibles</b><p>La plateforme ne conserve pas encore de registre des appareils. Aucune session n’est simulée.</p></div></div></section></section></main>;
 }

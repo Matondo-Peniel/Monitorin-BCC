@@ -1,9 +1,62 @@
-import { useState } from 'react';
-import { AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, Cloud, Database, Download, FileText, LockKeyhole, RefreshCw, ShieldCheck, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { CheckCircle2, Database, HardDrive, Info, LockKeyhole, RefreshCw, ShieldCheck } from 'lucide-react';
+import { api } from '../api';
 
-const backups=[['14/05/2025 02:00:12','Complète','2,45 GB','Réussie','00:08:32'],['13/05/2025 20:00:05','Différentielle','512 MB','Réussie','00:02:15'],['13/05/2025 02:00:09','Complète','2,48 GB','Réussie','00:08:45'],['12/05/2025 02:00:11','Complète','2,41 GB','Échouée','00:00:45'],['11/05/2025 02:00:10','Complète','2,39 GB','Réussie','00:08:10']];
+const size = bytes => `${(Number(bytes || 0) / 1024 / 1024).toFixed(1)} Mo`;
 
-export default function BackupSettings(){const[compression,setCompression]=useState(true),[verification,setVerification]=useState(true),[notice,setNotice]=useState(''),[schedule,setSchedule]=useState(false);const flash=text=>{setNotice(text);setTimeout(()=>setNotice(''),2800)};return <div className="backup-page">{notice&&<div className="backup-toast"><CheckCircle2/>{notice}</div>}<div className="backup-overview-row"><section className="backup-overview"><h2>Vue d’ensemble des sauvegardes</h2><div><Stat icon={Database} value="128" label="Sauvegardes totales" sub="Depuis le 01/01/2025"/><Stat icon={CheckCircle2} value="124" label="Sauvegardes réussies" sub="97% de réussite" tone="green"/><Stat icon={AlertTriangle} value="3" label="Sauvegardes échouées" sub="Voir les détails" tone="orange"/><Stat icon={Cloud} value="256" unit="GB" label="Espace utilisé" sub="Sur 1 TB (26%)" tone="purple" progress/></div></section><aside className="backup-next"><h2>Prochaine sauvegarde planifiée</h2><dl><dt>Type</dt><dd>Complète</dd><dt>Date et heure</dt><dd>15/05/2025 02:00</dd><dt>Base de données</dt><dd>DB_Monitoring_ETL</dd><dt>Rétention</dt><dd>30 jours</dd></dl><button onClick={()=>setSchedule(!schedule)}><CalendarDays/>Modifier la planification</button>{schedule&&<div className="backup-schedule-pop"><label>Date<input type="date" defaultValue="2025-05-15"/></label><label>Heure<input type="time" defaultValue="02:00"/></label><button onClick={()=>{setSchedule(false);flash('Planification mise à jour.')}}>Enregistrer</button></div>}</aside></div><section className="backup-configuration"><div><h2>Configuration des sauvegardes</h2><Field label="Type de sauvegarde par défaut"><select><option>Complète</option><option>Différentielle</option></select></Field><Field label="Fréquence des sauvegardes complètes"><select><option>Quotidienne</option><option>Hebdomadaire</option></select></Field><Field label="Heure de sauvegarde"><input type="time" defaultValue="02:00"/></Field><Field label="Rétention des sauvegardes complètes"><select><option>30 jours</option><option>60 jours</option></select></Field><Field label="Fréquence des sauvegardes différentielles"><select><option>Toutes les 6 heures</option><option>Toutes les 12 heures</option></select></Field><Field label="Rétention des sauvegardes différentielles"><select><option>7 jours</option><option>14 jours</option></select></Field><Field label="Compression des sauvegardes"><Switch on={compression} toggle={()=>setCompression(!compression)}/></Field><Field label="Vérification automatique des sauvegardes"><Switch on={verification} toggle={()=>setVerification(!verification)}/></Field></div><div><h2>Destination des sauvegardes</h2><Field label="Emplacement"><select><option>Stockage local + Cloud</option><option>Stockage local uniquement</option></select></Field><Field label="Chemin local"><input defaultValue={'D:\\Backup\\ETL_Monitoring\\'}/></Field><Field label="Stockage cloud"><select><option>Azure Blob Storage</option><option>AWS S3</option></select></Field><Field label="Conteneur / Bucket"><input defaultValue="bcc-etl-backup"/></Field><Field label="Chiffrement"><span className="backup-encryption"><LockKeyhole/>Activé (AES-256)</span></Field><button className="backup-test" onClick={()=>flash('Destination accessible et sécurisée.')}><ShieldCheck/>Tester la destination</button></div></section><section className="backup-history"><h2>Historique des sauvegardes récentes</h2><div><table><thead><tr><th>Date et heure</th><th>Type</th><th>Base de données</th><th>Taille</th><th>Statut</th><th>Durée</th><th>Initié par</th><th>Actions</th></tr></thead><tbody>{backups.map(row=><tr key={row[0]}><td>{row[0]}</td><td><span className={`backup-type ${row[1]==='Différentielle'?'diff':''}`}>{row[1]}</span></td><td>DB_Monitoring_ETL</td><td>{row[2]}</td><td><span className={`backup-status ${row[3]==='Réussie'?'ok':'bad'}`}>{row[3]==='Réussie'?<CheckCircle2/>:<X/>}{row[3]}</span></td><td>{row[4]}</td><td>Planification</td><td><span className="backup-actions"><button onClick={()=>flash(row[3]==='Réussie'?'Téléchargement préparé.':'Nouvelle tentative lancée.')}>{row[3]==='Réussie'?<Download/>:<RefreshCw/>}</button><button onClick={()=>flash(`Journal du ${row[0]} ouvert.`)}><FileText/></button></span></td></tr>)}</tbody></table></div><button className="backup-all">Afficher tous les historiques <ChevronRight/></button></section></div>}
-function Stat({icon:Icon,value,unit,label,sub,tone='',progress}){return <article className={tone}><Icon/><strong>{value} {unit&&<em>{unit}</em>}</strong><b>{label}</b><small>{sub}</small>{progress&&<i><span/></i>}</article>}
-function Field({label,children}){return <label className="backup-field"><span>{label}</span>{children}</label>}
-function Switch({on,toggle}){return <button type="button" className={`backup-switch ${on?'on':''}`} onClick={toggle}><span/></button>}
+export default function BackupSettings() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  const load = useCallback(async () => {
+    const startedAt = Date.now();
+    setLoading(true);
+    setError('');
+    try { setItems(await api.backups()); } catch (exception) { setError(exception.message); } finally {
+      const remaining = Math.max(0, 1000 - (Date.now() - startedAt));
+      if (remaining) await new Promise(resolve => window.setTimeout(resolve, remaining));
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const create = async () => {
+    setCreating(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await api.createBackup();
+      setNotice(`${result.message} ${result.fichier}`);
+      await load();
+    } catch (exception) {
+      setError(exception.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return <div className="backup-v2">
+    {error && <p className="register-error" role="alert">{error}</p>}
+    {notice && <div className="backup-v2-notice"><CheckCircle2 />{notice}</div>}
+
+    <section className="backup-v2-hero">
+      <div className="backup-v2-hero-copy"><span><HardDrive /></span><div><small>PROTECTION DES DONNÉES</small><h2>Sauvegarde SQL Server</h2><p>Créez une copie complète et indépendante de la base MonitoringETL_BCC.</p></div></div>
+      <button type="button" className="backup-v2-primary" disabled={creating} onClick={create}><HardDrive />{creating ? 'Sauvegarde en cours…' : 'Créer une sauvegarde'}</button>
+    </section>
+
+    <section className="backup-v2-status" aria-label="État du service de sauvegarde">
+      <article><span className="is-blue"><Database /></span><div><small>Service</small><b>SQL Server opérationnel</b><p>Sauvegarde complète avec checksum et compression.</p></div></article>
+      <article><span className="is-green"><ShieldCheck /></span><div><small>Mode sécurisé</small><b>Copie COPY_ONLY</b><p>La chaîne normale de sauvegardes reste inchangée.</p></div></article>
+      <article><span className="is-purple"><LockKeyhole /></span><div><small>Autorisation</small><b>Administrateurs uniquement</b><p>Endpoint protégé par le rôle serveur.</p></div></article>
+    </section>
+
+    <section className="backup-v2-history">
+      <header><div><h2>Historique des sauvegardes</h2><p>Dernières sauvegardes complètes enregistrées par SQL Server.</p></div><button type="button" className="refresh" disabled={loading} onClick={load}><RefreshCw className={loading ? 'spin' : ''} />{loading ? 'Actualisation…' : 'Actualiser'}</button></header>
+      {loading ? <div className="backup-v2-empty">Chargement de l’historique…</div> : items.length ? <div className="backup-v2-list">{items.map(item => <article key={item.id}><span><Database /></span><div><b>{item.databaseName}</b><small>{item.copyOnly ? 'Sauvegarde COPY_ONLY' : 'Sauvegarde complète'}</small></div><strong>{size(item.tailleOctets)}</strong><time>{new Date(item.dateFin || item.dateDebut).toLocaleString('fr-FR')}</time></article>)}</div> : <div className="backup-v2-empty"><HardDrive /><b>Aucune sauvegarde enregistrée</b><p>Utilisez le bouton « Créer une sauvegarde » pour générer la première copie.</p></div>}
+      <footer><Info />Les fichiers sont enregistrés dans le répertoire officiel de l’instance. La restauration est volontairement séparée pour éviter tout écrasement accidentel.</footer>
+    </section>
+  </div>;
+}

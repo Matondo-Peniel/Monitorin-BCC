@@ -1,19 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { renameSync } from 'node:fs';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    {
-      name: 'github-pages-index',
-      closeBundle() { renameSync('dist/app.html', 'dist/index.html'); },
-    },
-  ],
+  plugins: [react()],
   base: '/Monitorin-BCC/',
   build: {
     rollupOptions: {
-      input: 'app.html',
+      input: 'index.html',
       output: {
         entryFileNames: 'assets/app.js',
         chunkFileNames: 'assets/chunk-[name].js',
@@ -21,5 +14,13 @@ export default defineConfig({
       },
     },
   },
-  server: { proxy: { '/api': { target: 'http://127.0.0.1:5080', changeOrigin: true } } },
+  server: {
+    watch: {
+      ignored: ['**/backend/**/bin/**', '**/backend/**/obj/**'],
+    },
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:5202', changeOrigin: true },
+      '/uploads': { target: 'http://127.0.0.1:5202', changeOrigin: true },
+    },
+  },
 });

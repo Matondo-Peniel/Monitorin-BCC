@@ -4,3 +4,13 @@ node_modules/
 backend/**/bin/
 backend/**/obj/
 backend/**/appsettings.Local.json
+backend/**/.data-protection-keys/
+.dotnet-sdk/
+.dotnet-home/
+.nuget/
+.appdata/
+.localappdata/
+.dotnet-install.ps1
+.api-smoke.*.log
+.build-check*/
+backend/**/App_Data/

@@ -1,0 +1,26 @@
+.tracking-kpis-alert-style {
+  margin-bottom: 16px;
+}
+
+.tracking-kpis-alert-style .ui-kpi-card {
+  min-width: 0;
+}
+
+.tracking-kpis-alert-style .ui-icon-wrap.is-cyan {
+  border-color: #ccebf4;
+  background: #eaf8fc;
+  color: #168bb7;
+}
+
+.tracking-kpis-alert-style .ui-icon-wrap.is-navy {
+  border-color: #d5ddf4;
+  background: #eef2ff;
+  color: #3157c8;
+}
+
+@media (min-width: 1201px) {
+  .source-configurator form {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    grid-auto-flow: column;
+  }
+}

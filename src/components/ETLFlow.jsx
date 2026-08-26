@@ -1,18 +1,17 @@
 import { Fragment } from 'react';
 import { Check, X, ArrowRight, Database, Landmark } from 'lucide-react';
 
-const stages = [
-  ['SOURCES', Database, '10 / 12', '83%', true],
-  ['STAGING', Database, '9 / 10', '90%', true],
-  ['DATA WAREHOUSE', Landmark, '8 / 10', '80%', false],
-];
-
-export default function ETLFlow({ onViewDetails }) {
+export default function ETLFlow({ onViewDetails, metrics = {} }) {
+  const stages = [
+    ['SOURCES', Database, `${metrics.loadedSources||0} / ${metrics.activeSources||0}`, '', (metrics.loadedSources||0)>0],
+    ['STAGING', Database, `${metrics.stagingSuccess||0} / ${metrics.total||0}`, `${metrics.stagingRate||0}%`, (metrics.stagingFailed||0)===0&&(metrics.total||0)>0],
+    ['DATA WAREHOUSE', Landmark, `${metrics.warehouseSuccess||0} / ${metrics.total||0}`, `${metrics.warehouseRate||0}%`, (metrics.warehouseFailed||0)===0&&(metrics.total||0)>0],
+  ];
   return <section className="card panel flow-panel">
     <h2>Flux ETL global</h2>
     <div className="flow-row">
       {stages.map(([name, icon, count, rate, ok], index) => <Fragment key={name}>
-        <button className="stage" onClick={() => alert(`${name} : ${count} (${rate})`)}>
+        <button className="stage" type="button" onClick={onViewDetails} title={`Consulter le détail du flux ${name}`}>
           <span className="stage-card">
             <b>{name}</b>
             <span className={`stage-icon ${typeof icon === 'string' ? 'image' : 'vector'}`}>

@@ -1,0 +1,101 @@
+.settings-page .settings-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 204px 204px 44px 44px;
+  align-items: end;
+  gap: 12px;
+  margin: 20px 0 16px;
+}
+
+.settings-page .settings-filters > label {
+  box-sizing: border-box;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  border: 1px solid var(--ui-border, #cfe2f5);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.settings-page .settings-filters > label:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+}
+
+.settings-page .settings-filters > label:first-child svg {
+  width: 18px;
+  height: 18px;
+  color: var(--ui-blue, #0867e8);
+}
+
+.settings-page .settings-filters > label:first-child input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ui-text, #102f62);
+  font: inherit;
+}
+
+.settings-page .settings-filters .custom-select {
+  min-width: 0;
+}
+
+.settings-page .settings-filters .custom-select-label {
+  height: 15px;
+  margin: 0 0 4px 2px;
+}
+
+.settings-page .settings-filters .custom-select-trigger {
+  min-height: 44px;
+  border-radius: 8px;
+}
+
+.settings-page .settings-filters > button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--ui-border, #cfe2f5);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ui-blue-strong, #0057c8);
+}
+
+.settings-page .settings-filters > button:hover {
+  border-color: #91b9ef;
+  background: var(--ui-blue-soft, #e9f4ff);
+}
+
+.settings-page .settings-filters > button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.settings-page .settings-filters > label:focus-within,
+.settings-page .settings-filters > button:focus-visible {
+  border-color: #6da8ef;
+  box-shadow: 0 0 0 3px rgba(8, 103, 232, .12);
+  outline: 0;
+}
+
+.settings-page .settings-table-wrap { margin-top: 0; }
+
+@media (max-width: 1060px) {
+  .settings-page .settings-filters { grid-template-columns: minmax(240px, 1fr) 190px 190px 44px 44px; }
+}
+
+@media (max-width: 860px) {
+  .settings-page .settings-filters { grid-template-columns: minmax(0, 1fr) minmax(170px, 1fr) minmax(170px, 1fr) 44px 44px; }
+}
+
+@media (max-width: 650px) {
+  .settings-page .settings-filters { grid-template-columns: 1fr 1fr; }
+  .settings-page .settings-filters > label:first-child { grid-column: 1 / -1; }
+  .settings-page .settings-filters .custom-select { min-width: 0; }
+  .settings-page .settings-filters > button { width: 100%; }
+}
