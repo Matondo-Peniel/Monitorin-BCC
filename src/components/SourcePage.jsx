@@ -19,9 +19,9 @@ export default function SourcePage({ onNavigate, user }) {
   const { sources, sourceId, setSourceId, refreshSources } = useActiveSource();
   const [rows, setRows] = useState([]), [latest, setLatest] = useState(null);
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [refreshKey, setRefreshKey] = useState(0);
-  const [canConfigure, setCanConfigure] = useState(Boolean(user?.roles?.some(role => role === 'ADMINISTRATEUR' || role === 'ANALYSTE')));
+  const [canConfigure, setCanConfigure] = useState(Boolean(user?.roles?.includes('ADMINISTRATEUR')));
 
-  useEffect(() => { if (!user) api.me().then(current => setCanConfigure(Boolean(current?.roles?.some(role => role === 'ADMINISTRATEUR' || role === 'ANALYSTE')))).catch(() => {}); }, [user]);
+  useEffect(() => { if (!user) api.me().then(current => setCanConfigure(Boolean(current?.roles?.includes('ADMINISTRATEUR')))).catch(() => {}); }, [user]);
   useEffect(() => { if (!sourceId) return; let mounted = true; setLoading(true); setError(''); Promise.all([api.history(sourceId, activeDate, addDays(activeDate, 1), 1, 100), api.latest(sourceId)]).then(([history, last]) => { if (mounted) { setRows(history.donnees || []); setLatest(last?.donnee || null); } }).catch(e => { if (mounted) setError(e.message); }).finally(() => { if (mounted) setLoading(false); }); return () => { mounted = false; }; }, [activeDate, refreshKey, sourceId]);
 
   const source = useMemo(() => sources.find(item => String(item.idConnexion) === sourceId), [sourceId, sources]);

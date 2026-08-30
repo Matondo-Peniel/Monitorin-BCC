@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using MonitoringETL.Api.Data;
 using MonitoringETL.Api.Models;
 
@@ -16,15 +17,20 @@ public sealed class SourcesController(MonitoringDbContext db, IConfiguration con
     private string ConnectionString => configuration.GetConnectionString("MonitoringDatabase") ?? throw new InvalidOperationException("La connexion SQL Server est absente.");
 
     [HttpGet]
-    public async Task<IActionResult> List(CancellationToken ct) => Ok(await db.Connexions.AsNoTracking().Where(x => x.Actif).OrderBy(x => x.NomConnexion).Select(x => new { x.IdConnexion, x.NomConnexion, x.TypeConnexion, x.NomServeur, x.NomBase, x.NomTableMonitoring, x.Actif }).ToListAsync(ct));
+    public async Task<IActionResult> List(CancellationToken ct)
+    {
+        var technicalDetailsAllowed = User.IsInRole("ADMINISTRATEUR") || User.IsInRole("ANALYSTE");
+        return Ok(await db.Connexions.AsNoTracking().Where(x => x.Actif).OrderBy(x => x.NomConnexion)
+            .Select(x => new { x.IdConnexion, x.NomConnexion, x.TypeConnexion, NomServeur = technicalDetailsAllowed ? x.NomServeur : null, NomBase = technicalDetailsAllowed ? x.NomBase : null, NomTableMonitoring = technicalDetailsAllowed ? x.NomTableMonitoring : null, x.Actif }).ToListAsync(ct));
+    }
 
-    [HttpGet("{id:int}")]
+    [Authorize(Roles = "ADMINISTRATEUR,ANALYSTE"), HttpGet("{id:int}")]
     public async Task<IActionResult> Get(int id, CancellationToken ct) { var source = await db.Connexions.AsNoTracking().Where(x => x.IdConnexion == id).Select(x => new { x.IdConnexion, x.NomConnexion, x.TypeConnexion, x.NomServeur, x.NomBase, x.NomTableMonitoring, x.Actif }).SingleOrDefaultAsync(ct); return source is null ? NotFound() : Ok(source); }
 
-    [Authorize(Roles = "ADMINISTRATEUR,ANALYSTE"), HttpGet("configuration/serveur")]
+    [Authorize(Roles = "ADMINISTRATEUR"), HttpGet("configuration/serveur")]
     public IActionResult Server() { var builder = new SqlConnectionStringBuilder(ConnectionString); return Ok(new { serveur = builder.DataSource, authentification = builder.IntegratedSecurity ? "Windows / Active Directory" : "Compte de service SQL", lectureSeule = true }); }
 
-    [Authorize(Roles = "ADMINISTRATEUR,ANALYSTE"), HttpGet("configuration/bases")]
+    [Authorize(Roles = "ADMINISTRATEUR"), HttpGet("configuration/bases")]
     public async Task<IActionResult> Databases(CancellationToken ct)
     {
         await using var connection = CreateConnection("master"); await connection.OpenAsync(ct);
@@ -32,14 +38,14 @@ public sealed class SourcesController(MonitoringDbContext db, IConfiguration con
         var items = new List<string>(); await using var reader = await command.ExecuteReaderAsync(ct); while (await reader.ReadAsync(ct)) items.Add(reader.GetString(0)); return Ok(items);
     }
 
-    [Authorize(Roles = "ADMINISTRATEUR,ANALYSTE"), HttpGet("configuration/tables")]
+    [Authorize(Roles = "ADMINISTRATEUR"), HttpGet("configuration/tables")]
     public async Task<IActionResult> Tables([FromQuery] string baseDonnees, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(baseDonnees) || !await DatabaseIsAccessible(baseDonnees, ct)) return BadRequest(new { message = "Base non autorisée ou inaccessible." });
         return Ok(await CompatibleTables(baseDonnees, ct));
     }
 
-    [Authorize(Roles = "ADMINISTRATEUR,ANALYSTE"), HttpPost("configuration")]
+    [Authorize(Roles = "ADMINISTRATEUR"), HttpPost("configuration")]
     public async Task<IActionResult> Configure(ConfigurerSourceRequest request, CancellationToken ct)
     {
         if (!await DatabaseIsAccessible(request.BaseDonnees, ct)) return BadRequest(new { message = "Base non autorisée ou inaccessible." });
@@ -48,6 +54,8 @@ public sealed class SourcesController(MonitoringDbContext db, IConfiguration con
         var server = new SqlConnectionStringBuilder(ConnectionString).DataSource; var table = $"[{selected.Schema}].[{selected.Table}]";
         var source = await db.Connexions.SingleOrDefaultAsync(x => x.NomServeur == server && x.NomBase == request.BaseDonnees && x.NomTableMonitoring == table, ct);
         if (source is null) { source = new Connexion { NomConnexion = string.IsNullOrWhiteSpace(request.NomConnexion) ? $"{request.BaseDonnees} — {selected.Table}" : request.NomConnexion.Trim(), TypeConnexion = "SQL Server — lecture seule", NomServeur = server, NomBase = request.BaseDonnees, NomTableMonitoring = table, Actif = true }; db.Connexions.Add(source); await db.SaveChangesAsync(ct); }
+        db.JournauxAudit.Add(new JournalAudit { IdUtilisateur = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null, Action = "CONFIGURATION_SOURCE", AdresseIP = HttpContext.Connection.RemoteIpAddress?.ToString(), Details = $"Source configurée : {source.NomConnexion}." });
+        await db.SaveChangesAsync(ct);
         return Ok(new { source.IdConnexion, source.NomConnexion, source.NomServeur, source.NomBase, source.NomTableMonitoring, message = "Table de suivi ETL configurée avec succès." });
     }
 

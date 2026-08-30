@@ -15,6 +15,7 @@ const date = value => new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 
 const dateTime = value => new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 
 export default function ValidationPage({ user }) {
+  const isAdministrator = Boolean(user?.roles?.includes('ADMINISTRATEUR'));
   const [view, setView] = useState('overview');
   const [configured, setConfigured] = useState(null);
   const [tables, setTables] = useState([]);
@@ -39,11 +40,16 @@ export default function ValidationPage({ user }) {
     silent ? setRefreshing(true) : setLoading(true);
     setError('');
     try {
-      const [nextTables, nextJournal, nextConfiguration] = await Promise.all([api.validationTables(), api.validationLog(), api.validationConfiguration().catch(() => null)]);
+      const [nextTables, nextJournal, nextStatus, nextConfiguration] = await Promise.all([
+        api.validationTables(),
+        api.validationLog(),
+        api.validationStatus(),
+        isAdministrator ? api.validationConfiguration() : Promise.resolve(null),
+      ]);
       setTables(nextTables);
       setJournal(nextJournal);
       setConfiguration(nextConfiguration);
-      setConfigured(Boolean(nextConfiguration?.configured));
+      setConfigured(Boolean(nextStatus?.configured));
       setActive(current => nextTables.some(item => item.code === current) ? current : nextTables[0]?.code || '');
     } catch (exception) {
       setError(exception.message || 'Impossible de charger le contexte de validation.');
@@ -93,7 +99,7 @@ export default function ValidationPage({ user }) {
     }
   };
 
-  const canConfigure = Boolean(user?.roles?.some(role => role === 'ADMINISTRATEUR' || role === 'ANALYSTE'));
+  const canConfigure = isAdministrator;
   if (configured === null || loading) return <main className="ui-page validation-page"><section className="ui-panel validation-empty">Chargement de la configuration de validation…</section></main>;
   if (!configured) return <ValidationSetup canConfigure={canConfigure} fullScreen={configurationOpen} onBack={() => loadWorkspace()} onConfigured={() => loadWorkspace()} />;
   return <main className={`ui-page validation-page ${factTablesOpen ? 'fact-tables-mode' : ''}${journalOpen ? ' journal-mode' : ''}${configurationOpen ? ' configuration-mode' : ''}`}>
@@ -104,7 +110,7 @@ export default function ValidationPage({ user }) {
 
     {error && <p className="ui-inline-error">{error}</p>}
     {loading ? <section className="ui-panel validation-empty">Chargement du contexte de validation…</section> : <>
-      {view === 'overview' && <ValidationOverview tables={tables} journal={journal} onOpenTables={() => { setView('tables'); setFactTablesOpen(true); }} onOpenJournal={() => { setView('journal'); setJournalOpen(true); }} onOpenConfiguration={() => { setView('configuration'); setConfigurationOpen(true); }} />}
+      {view === 'overview' && <ValidationOverview tables={tables} journal={journal} canConfigure={canConfigure} onOpenTables={() => { setView('tables'); setFactTablesOpen(true); }} onOpenJournal={() => { setView('journal'); setJournalOpen(true); }} onOpenConfiguration={() => { setView('configuration'); setConfigurationOpen(true); }} />}
       {view === 'tables' && (factTablesOpen ? <section className="ui-panel validation-workspace"><header className="validation-workspace__head"><div><button className="validation-back" type="button" onClick={() => setFactTablesOpen(false)}><ArrowLeft />Retour aux tables de faits</button><h2 className="ui-panel-title">{tableLabel(active)}</h2><p className="ui-panel-copy">Les indicateurs sont détectés directement dans la table de faits.</p></div><span className="validation-count"><CheckCircle2 />{activeChanges} modification{activeChanges > 1 ? 's' : ''}</span></header><div className="validation-tabs" role="tablist" aria-label="Tables de faits">{tables.map(table => <button type="button" role="tab" aria-selected={active === table.code} className={active === table.code ? 'active' : ''} onClick={() => setActive(table.code)} key={table.code}>{table.nom}</button>)}</div>{loadingRows ? <div className="validation-empty">Chargement de {tableLabel(active)}…</div> : <div className="ui-table-wrap"><table className="ui-table validation-table"><thead><tr><th>Date</th>{indicators.map(key => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><strong>{date(row.dateReference)}</strong><span className="validation-agency">{row.agence}</span></td>{indicators.map(key => <td key={key}><button className="validation-value" type="button" onClick={() => { setSelected({ row, key }); setAmount(''); setReason(''); }} aria-label={`Modifier ${key}`}><span>{number(row.valeurs?.[key])}</span><Edit3 /></button></td>)}</tr>)}</tbody></table>{!rows.length && <div className="validation-empty">Aucune donnée disponible dans cette table.</div>}</div>}</section> : <FactTablesLanding tables={tables} onOpen={() => setFactTablesOpen(true)} />)}
       {view === 'journal' && (journalOpen ? <><button className="journal-screen__back" type="button" onClick={() => { setJournalOpen(false); setView('overview'); }}><ArrowLeft />Retour à la validation</button><ValidationJournalActions journal={journal} canUndo={canConfigure} onChanged={() => loadWorkspace(true)} /></> : <JournalLanding journal={journal} onOpen={() => setJournalOpen(true)} />)}
       {view === 'configuration' && (configurationOpen ? <><button className="configuration-screen__back" type="button" onClick={() => { setConfigurationOpen(false); setView('overview'); }}><ArrowLeft />Retour à la validation</button><ValidationConfiguration configuration={configuration} canConfigure={canConfigure} onReset={() => setConfigured(false)} /></> : <ConfigurationLanding configuration={configuration} onOpen={() => setConfigurationOpen(true)} />)}
@@ -113,8 +119,8 @@ export default function ValidationPage({ user }) {
   </main>;
 }
 
-function ValidationOverview({ tables, journal, onOpenTables, onOpenJournal, onOpenConfiguration }) {
-  return <section className="validation-hub" aria-label="Espaces de validation"><button className="validation-hub__card validation-hub__card--tables" type="button" onClick={onOpenTables}><span className="validation-hub__icon"><Table2 /></span><span className="validation-hub__copy"><small>CONTRÔLE DES DONNÉES</small><strong>Tables de faits</strong><em>Consultez les {tables.length} tables et corrigez les indicateurs de l’entrepôt UAT.</em></span><span className="validation-hub__arrow"><ArrowRight /></span></button><button className="validation-hub__card validation-hub__card--journal" type="button" onClick={onOpenJournal}><span className="validation-hub__icon"><History /></span><span className="validation-hub__copy"><small>TRAÇABILITÉ</small><strong>Journal des modifications</strong><em>Retrouvez les {journal.length} corrections et annulez celles qui sont autorisées.</em></span><span className="validation-hub__arrow"><ArrowRight /></span></button><button className="validation-hub__card validation-hub__card--configuration" type="button" onClick={onOpenConfiguration}><span className="validation-hub__icon"><Settings2 /></span><span className="validation-hub__copy"><small>ENVIRONNEMENT UAT</small><strong>Configuration de validation</strong><em>Vérifiez la base, le schéma, les tables mappées et le journal d’audit.</em></span><span className="validation-hub__arrow"><ArrowRight /></span></button></section>;
+function ValidationOverview({ tables, journal, canConfigure, onOpenTables, onOpenJournal, onOpenConfiguration }) {
+  return <section className="validation-hub" aria-label="Espaces de validation"><button className="validation-hub__card validation-hub__card--tables" type="button" onClick={onOpenTables}><span className="validation-hub__icon"><Table2 /></span><span className="validation-hub__copy"><small>CONTRÔLE DES DONNÉES</small><strong>Tables de faits</strong><em>Consultez les {tables.length} tables et corrigez les indicateurs de l’entrepôt UAT.</em></span><span className="validation-hub__arrow"><ArrowRight /></span></button><button className="validation-hub__card validation-hub__card--journal" type="button" onClick={onOpenJournal}><span className="validation-hub__icon"><History /></span><span className="validation-hub__copy"><small>TRAÇABILITÉ</small><strong>Journal des modifications</strong><em>Retrouvez les {journal.length} corrections et annulez celles qui sont autorisées.</em></span><span className="validation-hub__arrow"><ArrowRight /></span></button>{canConfigure && <button className="validation-hub__card validation-hub__card--configuration" type="button" onClick={onOpenConfiguration}><span className="validation-hub__icon"><Settings2 /></span><span className="validation-hub__copy"><small>ENVIRONNEMENT UAT</small><strong>Configuration de validation</strong><em>Vérifiez la base, le schéma, les tables mappées et le journal d’audit.</em></span><span className="validation-hub__arrow"><ArrowRight /></span></button>}</section>;
 }
 
 function FactTablesLanding({ tables, onOpen }) {
@@ -152,6 +158,6 @@ function ValidationSetup({ canConfigure, onConfigured, fullScreen = false, onBac
   useEffect(() => { Promise.all([api.sourceServer(), api.sourceDatabases()]).then(([info, items]) => { setServer(info); setDatabases(items); }).catch(exception => setError(exception.message || 'Impossible de charger les bases de données.')); }, []);
   const ready = Boolean(database && schema && journal);
   const save = async () => { if (!ready || saving) return; setSaving(true); setError(''); try { await api.configureValidation({ baseDonnees: database, schema, journal }); await onConfigured(); } catch (exception) { setError(exception.message || 'La configuration n’a pas pu être enregistrée.'); } finally { setSaving(false); } };
-  if (!canConfigure) return <main className="ui-page validation-page"><section className="ui-panel validation-empty">Un administrateur ou un analyste doit configurer la validation des données.</section></main>;
+  if (!canConfigure) return <main className="ui-page validation-page"><section className="ui-panel validation-empty">La validation des données doit d’abord être configurée par un administrateur.</section></main>;
   return <main className="ui-page validation-page"><header className="ui-page-header validation-page__header"><div className="ui-page-heading"><div className="ui-eyebrow"><Settings2 />Configuration indépendante</div><h1>Configurer la validation des données</h1><p>Choisissez la base et le schéma des tables de faits, indépendamment des Sources ETL.</p></div></header><section className="source-configurator ui-panel validation-setup"><header><span><Database /></span><div><small>CONFIGURATION VALIDATION</small><h2>Connecter les tables de faits</h2><p>Les choix suivants sont enregistrés pour le contexte Validation uniquement.</p></div></header><div className="validation-setup__fields"><label><span>Serveur SQL Server</span><div className="source-config-readonly"><Database />{server?.serveur || 'Connexion…'}</div><small>{server?.authentification || 'Windows / Active Directory'}</small></label><label><span>Base de données</span><div className="source-config-select"><Database /><select value={database} onChange={e => { setDatabase(e.target.value); setSchema(''); setJournal(''); }}><option value="">Sélectionner une base…</option>{databases.map(item => <option key={item}>{item}</option>)}</select></div><small>{databases.length} base(s) accessible(s)</small></label><label><span>Schéma des tables</span><div className="source-config-select"><Table2 /><select value={schema} disabled={!database} onChange={e => { setSchema(e.target.value); setJournal(''); }}><option value="">Sélectionner un schéma…</option><option value="stg">stg</option></select></div><small>14 tables FaitValidation attendues</small></label><label><span>Journal de validation</span><div className="source-config-select"><History /><select value={journal} disabled={!schema} onChange={e => setJournal(e.target.value)}><option value="">Sélectionner un journal…</option><option value="dbo.ValidationJournal">dbo.ValidationJournal</option></select></div><small>Ancienne et nouvelle valeur</small></label><button className="ui-button ui-button--primary" type="button" disabled={!ready || saving} onClick={save}><CheckCircle2 />{saving ? 'Validation…' : 'Valider la configuration'}</button></div>{error && <p className="ui-inline-error" role="alert">{error}</p>}</section></main>;
 }

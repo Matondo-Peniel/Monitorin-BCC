@@ -64,6 +64,7 @@ async function upload(path, formData) {
 
 export const api = {
   validationTables: () => request('/validation/tables'),
+  validationStatus: () => request('/validation/statut'),
   validationConfiguration: () => request('/validation/configuration'),
   configureValidation: data => request('/validation/configuration', { method: 'POST', body: JSON.stringify(data) }),
   validationRows: table => request(`/validation/${encodeURIComponent(table)}`),
