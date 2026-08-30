@@ -1,0 +1,1 @@
+html:not(.monitoring-source-configured) .general-settings .general-grid>.general-card:nth-child(2),html:not(.monitoring-source-configured) .general-settings .general-grid>.general-card:nth-child(3){display:none}

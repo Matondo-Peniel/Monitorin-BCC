@@ -1,0 +1,155 @@
+.tracking-page .tracking-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.tracking-page .tracking-kpi {
+  --kpi-accent: #0874e8;
+  --kpi-soft: #eaf4ff;
+  position: relative;
+  isolation: isolate;
+  min-height: 188px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow: hidden;
+  border: 1px solid #d2e6f5;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fff 60%, var(--kpi-soft) 145%);
+  box-shadow: 0 9px 24px rgba(17, 78, 137, .055);
+}
+
+.tracking-page .tracking-kpi::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: 4px;
+  background: var(--kpi-accent);
+}
+
+.tracking-page .tracking-kpi::after { content: none; }
+.tracking-page .tracking-kpi--green { --kpi-accent: #08a76b; --kpi-soft: #eafaf3; }
+.tracking-page .tracking-kpi--cyan { --kpi-accent: #0795c8; --kpi-soft: #eaf9fd; }
+.tracking-page .tracking-kpi--navy { --kpi-accent: #164fb6; --kpi-soft: #edf2ff; }
+
+.tracking-page .tracking-kpi > header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.tracking-page .tracking-kpi-icon,
+.tracking-page .tracking-kpi:first-child > header > .tracking-kpi-icon {
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--kpi-accent) 22%, white);
+  border-radius: 12px;
+  background: var(--kpi-soft);
+  color: var(--kpi-accent);
+  box-shadow: none;
+}
+
+.tracking-page .tracking-kpi-icon svg,
+.tracking-page .tracking-kpi:first-child .tracking-kpi-icon svg { width: 21px; height: 21px; }
+.tracking-page .tracking-kpi > header > span:last-child { min-width: 0; display: grid; gap: 3px; }
+.tracking-page .tracking-kpi-eyebrow {
+  margin: 0;
+  color: #7790ab;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.tracking-page .tracking-kpi header b,
+.tracking-page .tracking-kpi:first-child header b {
+  margin: 0;
+  color: #123f75;
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.25;
+}
+
+.tracking-page .tracking-kpi-value {
+  min-height: 54px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.tracking-page .tracking-kpi-value strong,
+.tracking-page .tracking-kpi:first-child .tracking-kpi-value strong {
+  color: var(--kpi-accent);
+  font-size: 35px;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.tracking-page .tracking-kpi-value small,
+.tracking-page .tracking-kpi:first-child .tracking-kpi-value small {
+  max-width: 145px;
+  margin: 0 0 2px;
+  color: #6883a0;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.tracking-page .tracking-kpi-split {
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tracking-page .tracking-kpi-split > span {
+  display: grid;
+  grid-template-columns: 17px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-content: center;
+  padding: 8px;
+  border-radius: 10px;
+  background: #effaf5;
+  color: #07935e;
+}
+
+.tracking-page .tracking-kpi-split > span.failed { background: #fff2f3; color: #dc3545; }
+.tracking-page .tracking-kpi-split svg { grid-row: 1 / 3; align-self: center; width: 16px; height: 16px; }
+.tracking-page .tracking-kpi-split strong { color: currentColor; font-size: 21px; line-height: 1; }
+.tracking-page .tracking-kpi-split small { margin: 2px 0 0; color: currentColor; font-size: 8px; line-height: 1; }
+
+.tracking-page .tracking-kpi > footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+}
+
+.tracking-page .tracking-kpi > footer > span {
+  height: 5px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5eef7;
+}
+
+.tracking-page .tracking-kpi > footer i { display: block; height: 100%; border-radius: inherit; background: var(--kpi-accent); }
+.tracking-page .tracking-kpi > footer b { color: var(--kpi-accent); font-size: 9px; font-weight: 800; }
+
+@media (max-width: 1250px) {
+  .tracking-page .tracking-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .tracking-page .tracking-kpis { grid-template-columns: 1fr; }
+  .tracking-page .tracking-kpi { min-height: 176px; }
+}

@@ -1,0 +1,17 @@
+:root[data-density='compact'] .dashboard-main { padding: 18px 16px; }
+:root[data-density='compact'] .card,
+:root[data-density='compact'] .ui-panel { --settings-density-space: 10px; }
+:root[data-density='compact'] th,
+:root[data-density='compact'] td { padding-block: 8px; }
+
+:root[data-density='comfortable'] .dashboard-main { padding: 30px 26px; }
+:root[data-density='comfortable'] th,
+:root[data-density='comfortable'] td { padding-block: 15px; }
+
+:root[data-theme='system'] { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='system'] body { background: #102033; }
+  :root[data-theme='system'] .dashboard-main,
+  :root[data-theme='system'] .card,
+  :root[data-theme='system'] .ui-panel { filter: brightness(.96); }
+}

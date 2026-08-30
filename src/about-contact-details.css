@@ -1,0 +1,12 @@
+.about-contact-card li > span {
+  display: grid;
+  gap: 1px;
+}
+
+.about-contact-card li small {
+  color: #5273aa;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

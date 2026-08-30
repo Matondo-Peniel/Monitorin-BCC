@@ -1,0 +1,45 @@
+/* Le bouton du Dashboard est la référence visuelle unique pour les actions de page. */
+.global-date-controls > .refresh,
+.module-header-actions > .refresh {
+  width: auto !important;
+  min-width: 132px !important;
+  height: 48px !important;
+  padding: 0 17px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 9px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #0c45af !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.global-date-controls > .refresh svg,
+.module-header-actions > .refresh svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.global-date-controls > .refresh:hover:not(:disabled),
+.module-header-actions > .refresh:hover:not(:disabled) {
+  border-color: #86baff !important;
+  box-shadow: 0 5px 14px #0866f51c !important;
+  transform: translateY(-1px) !important;
+}
+
+.global-date-controls > .refresh:disabled,
+.module-header-actions > .refresh:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+@media (max-width: 760px) {
+  .global-date-controls > .refresh,
+  .module-header-actions > .refresh { width: 100% !important; }
+}

@@ -1,0 +1,130 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fbfdff 0%, #f4fbff 57%, #edf8ff 100%);
+  box-shadow: 8px 0 28px rgba(22, 87, 143, 0.06);
+}
+
+.sidebar::after {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 310px;
+  opacity: 0.3;
+  background: var(--building) center bottom / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.6) 34%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.6) 34%, #000 100%);
+}
+
+.brand {
+  padding: 25px 20px 18px;
+}
+
+.brand:hover {
+  background: transparent;
+}
+
+.brand img {
+  width: 82px;
+}
+
+.brand h2 {
+  margin-top: 8px;
+  color: #063c80;
+  font-size: 10px;
+  letter-spacing: 0.045em;
+}
+
+.sidebar nav {
+  gap: 6px;
+  padding: 8px 11px 14px;
+}
+
+.sidebar nav button {
+  min-height: 43px;
+  padding: 0 12px;
+  gap: 11px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #164b8e;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.sidebar nav button svg {
+  box-sizing: content-box;
+  width: 17px;
+  height: 17px;
+  padding: 6px;
+  border: 1px solid #d9ebfa;
+  border-radius: 9px;
+  background: #f7fbff;
+  color: #1770c3;
+  stroke-width: 2;
+}
+
+.sidebar nav button:hover {
+  border-color: #d5e9fa;
+  background: rgba(255, 255, 255, 0.84);
+  transform: none;
+}
+
+.sidebar nav button:hover svg {
+  border-color: #acd7f7;
+  background: #ecf7ff;
+}
+
+.sidebar nav button.active {
+  border-color: #1175e5;
+  background: linear-gradient(110deg, #0873e7, #0a61cc);
+  box-shadow: 0 8px 18px rgba(8, 99, 207, 0.2);
+}
+
+.sidebar nav button.active svg {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.sidebar-bottom {
+  z-index: 2;
+  margin-top: auto;
+  padding: 10px;
+  background: transparent;
+}
+
+.sidebar .user-card,
+.sidebar .logout {
+  border-color: rgba(190, 219, 241, 0.92);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+}
+
+.sidebar .user-card .avatar {
+  background: linear-gradient(145deg, #0878e8, #3bafe7);
+}
+
+.sidebar .user-card .avatar.has-photo {
+  overflow: hidden;
+  border: 2px solid #fff;
+  background: #eaf4ff;
+  box-shadow: 0 0 0 1px #bcdcf5, 0 4px 12px rgba(13, 82, 145, .16);
+}
+
+.sidebar .user-card .avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (max-height: 820px) and (min-width: 761px) {
+  .sidebar::after { height: 230px; }
+  .brand { padding: 13px 16px 8px; }
+  .brand img { width: 70px; }
+  .sidebar nav { gap: 3px; padding-top: 5px; padding-bottom: 7px; }
+  .sidebar nav button { min-height: 37px; }
+  .sidebar nav button svg { width: 15px; height: 15px; padding: 4px; }
+}

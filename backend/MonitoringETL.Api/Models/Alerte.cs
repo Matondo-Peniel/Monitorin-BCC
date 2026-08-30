@@ -1,0 +1,2 @@
+namespace MonitoringETL.Api.Models;
+public sealed class Alerte{public int IdAlerte{get;set;}public int IdChargement{get;set;}public DateTime DateHeureAlerte{get;set;}public required string Niveau{get;set;}public required string Etape{get;set;}public required string Message{get;set;}public required string Statut{get;set;}public DateTime? DateResolution{get;set;}public bool EstDonneeTest{get;set;}public SuiviChargement Chargement{get;set;}=null!;}

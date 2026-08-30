@@ -1,0 +1,6 @@
+{
+  "ConnectionStrings": {
+    "MonitoringDatabase": "Server=DESKTOP-MD2GFEF\\AA;Database=MonitoringETL_BCC;Integrated Security=True;Encrypt=False;TrustServerCertificate=True",
+    "ValidationDatabase": "Server=DESKTOP-MD2GFEF\\AA;Database=MonitoringETL_BCC;Integrated Security=True;Encrypt=False;TrustServerCertificate=True"
+  }
+}

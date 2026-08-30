@@ -1,0 +1,28 @@
+/* Les cartes ne se contractent plus et leur texte ne se sélectionne plus au clic. */
+.dashboard-main .card,
+.dashboard-main article,
+.dashboard-main section,
+.dashboard-main [class*="-card"],
+.dashboard-main [class*="-panel"]{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.dashboard-main .card:active,
+.dashboard-main article:active,
+.dashboard-main section:active,
+.dashboard-main [class*="-card"]:active,
+.dashboard-main [class*="-panel"]:active{
+  transform:none!important;
+}
+.dashboard-main input,
+.dashboard-main textarea,
+.dashboard-main [contenteditable="true"]{
+  -webkit-user-select:text;
+  user-select:text;
+}
+.dashboard-main input::selection,
+.dashboard-main textarea::selection{
+  background:#b9d8ff;
+  color:#082d76;
+}

@@ -1,0 +1,645 @@
+/* First invitation step: only collect what is needed, with the same visual rhythm as registration. */
+.invite-page {
+  color: #123f75;
+}
+
+.invite-header {
+  min-height: 104px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.invite-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px;
+  color: #073d80;
+  font-size: clamp(28px, 2.15vw, 34px);
+  font-weight: 780;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.invite-header h1 svg {
+  width: 28px;
+  height: 28px;
+  color: #0870df;
+}
+
+.invite-header p {
+  margin: 0;
+  color: #5d7fa4;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.invite-header-tools {
+  gap: 18px;
+}
+
+.invite-date {
+  min-height: 46px;
+  border-color: #cde2f4;
+  border-radius: 10px;
+  color: #17477f;
+  font-size: 12px;
+  box-shadow: 0 5px 13px rgba(24, 91, 146, 0.04);
+}
+
+.invite-brand {
+  color: #0b4d98;
+  font-size: 10px;
+}
+
+.invite-brand img {
+  width: 48px;
+  height: 48px;
+}
+
+.invite-stepper {
+  min-height: 70px;
+  margin-bottom: 18px;
+  padding: 0 74px;
+  border-color: #d1e5f5;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 7px 20px rgba(24, 91, 146, 0.04);
+}
+
+.invite-stepper li {
+  gap: 12px;
+  color: #7186a3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invite-stepper li > span {
+  z-index: 1;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border: 1px solid #bdd8ee;
+  border-radius: 50%;
+  background: #fff;
+  color: #346699;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.invite-stepper li.active,
+.invite-stepper li.complete {
+  color: #0a58cb;
+}
+
+.invite-stepper li.active > span,
+.invite-stepper li.complete > span {
+  border-color: #0870df;
+  background: #0870df;
+  color: #fff;
+}
+
+.invite-stepper li:not(:last-child)::after {
+  left: calc(50% + 80px);
+  width: calc(100% - 160px);
+  background: #d9e8f5;
+}
+
+.invite-stepper li.complete:not(:last-child)::after {
+  background: #62a7e8;
+}
+
+.invite-content-grid.invite-general-only {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.invite-general-only .invite-general-card {
+  min-height: 365px;
+  padding: 26px 28px;
+  border-color: #d2e6f5;
+  border-radius: 13px;
+  box-shadow: 0 8px 22px rgba(24, 91, 146, 0.05);
+}
+
+.invite-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e1edf7;
+  color: #0b4287;
+  font-size: 18px;
+  font-weight: 760;
+  letter-spacing: -0.018em;
+}
+
+.invite-section-title > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #d4eafa;
+  border-radius: 11px;
+  background: #edf8ff;
+  color: #0870df;
+}
+
+.invite-section-title svg {
+  width: 19px;
+  height: 19px;
+}
+
+.invite-section-copy {
+  max-width: 680px;
+  margin: 14px 0 22px;
+  color: #6382a5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.invite-general-only .invite-form-grid {
+  max-width: 900px;
+  gap: 22px;
+}
+
+.invite-field {
+  gap: 8px;
+}
+
+.invite-field > span {
+  color: #214f84;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invite-field > span b {
+  color: #df3d4c;
+}
+
+.invite-field input {
+  min-height: 46px;
+  border-color: #cde2f4;
+  border-radius: 9px;
+  color: #143f72;
+  font-size: 13px;
+}
+
+.invite-field input:focus {
+  border-color: #72b7ed;
+  box-shadow: 0 0 0 3px rgba(8, 112, 223, 0.1);
+}
+
+.invite-security-note {
+  max-width: 900px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border-color: #d4e7f6;
+  border-radius: 10px;
+  background: #f7fbff;
+}
+
+.invite-security-note > svg {
+  width: 21px;
+  height: 21px;
+  color: #0870df;
+}
+
+.invite-security-note strong {
+  color: #17477f;
+  font-size: 13px;
+}
+
+.invite-security-note p {
+  color: #6382a5;
+  font-size: 12px;
+}
+
+.invite-general-only .invite-actions {
+  margin-top: 0;
+  padding: 12px 0 0;
+}
+
+.invite-button {
+  min-height: 44px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.invite-button-primary {
+  min-width: 152px;
+}
+
+@media (max-width: 780px) {
+  .invite-header { min-height: auto; }
+  .invite-header h1 { font-size: 27px; }
+  .invite-header p { font-size: 13px; }
+  .invite-stepper { padding: 14px 8px; }
+  .invite-stepper li:not(:last-child)::after { left: calc(50% + 29px); width: calc(100% - 58px); }
+  .invite-general-only .invite-general-card { min-height: 0; padding: 20px; }
+  .invite-general-only .invite-form-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+
+/* Step 2: role selection and the permission preview share the reference composition. */
+.invite-content-grid:not(.invite-general-only) {
+  grid-template-columns: minmax(0, 1.18fr) minmax(360px, 0.82fr);
+  gap: 14px;
+}
+
+.invite-role-selection,
+.invite-permissions-card {
+  min-height: 570px;
+  padding: 24px;
+  border-color: #d2e6f5;
+  border-radius: 13px;
+  box-shadow: 0 8px 22px rgba(24, 91, 146, 0.045);
+}
+
+.invite-role-selection .invite-section-copy,
+.invite-permissions-card .invite-section-copy {
+  margin-bottom: 18px;
+}
+
+.invite-role-choice-list {
+  gap: 12px;
+}
+
+.invite-role-choice {
+  grid-template-columns: 20px 62px minmax(0, 1fr);
+  min-height: 118px;
+  gap: 15px;
+  padding: 18px;
+  border-color: #d9e9f6;
+  border-radius: 11px;
+  box-shadow: none;
+}
+
+.invite-role-choice:hover {
+  border-color: #9ecbf0;
+  background: #fbfdff;
+}
+
+.invite-role-choice.selected {
+  border-color: #75afe8;
+  background: linear-gradient(110deg, #f4faff, #fff);
+  box-shadow: 0 7px 18px rgba(26, 97, 165, 0.07);
+}
+
+.invite-role-choice .invite-radio {
+  display: block;
+  width: 19px;
+  height: 19px;
+  border: 2px solid #b8d2ea;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.invite-role-choice.selected .invite-radio {
+  border: 5px solid #0870df;
+}
+
+.invite-role-choice .invite-role-icon {
+  width: 62px;
+  height: 62px;
+  border: 1px solid #d8eafa;
+  background: #edf7ff;
+  color: #0870df;
+}
+
+.invite-role-choice.administrator .invite-role-icon {
+  background: #f1f6ff;
+  color: #315d9b;
+}
+
+.invite-role-choice b {
+  display: block;
+  margin-bottom: 5px;
+  color: #16477f;
+  font-size: 14px;
+  font-weight: 780;
+}
+
+.invite-role-choice small {
+  display: block;
+  color: #6382a5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.invite-role-choice em {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+  color: #0870df;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.invite-role-choice em svg {
+  width: 14px;
+  height: 14px;
+}
+
+.invite-permissions-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.invite-selected-role {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 18px;
+  padding: 17px;
+  border-color: #cfe9da;
+  border-radius: 10px;
+  background: linear-gradient(110deg, #f3fbf6, #fbfffc);
+}
+
+.invite-selected-role > span {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border: 1px solid #cde8d8;
+  border-radius: 50%;
+  background: #ebf8f0;
+  color: #0a8b45;
+}
+
+.invite-selected-role > span svg {
+  width: 29px;
+  height: 29px;
+}
+
+.invite-selected-role small {
+  display: block;
+  margin-bottom: 4px;
+  color: #567798;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.invite-selected-role strong {
+  color: #08713a;
+  font-size: 16px;
+  font-weight: 780;
+}
+
+.invite-selected-role p {
+  color: #315e8d;
+  font-size: 11px;
+  line-height: 1.48;
+}
+
+.invite-permission-list {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid #e1edf7;
+}
+
+.invite-permission-list > div {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  border-bottom: 1px solid #e7eff7;
+  color: #214f84;
+}
+
+.invite-permission-list > div > svg {
+  width: 17px;
+  height: 17px;
+  color: #0870df;
+}
+
+.invite-permission-list > div > span {
+  color: #214f84;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.invite-permission-list > div > b {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #08713a;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.invite-permission-list > div > b svg {
+  width: 14px;
+  height: 14px;
+}
+
+.invite-permissions-card .invite-info-note {
+  margin-top: auto;
+  padding: 14px;
+  border-radius: 9px;
+}
+
+.invite-content-grid:not(.invite-general-only) > .invite-actions {
+  grid-column: 2;
+  margin-top: -2px;
+  padding: 12px 0 0;
+}
+
+/* Step 3: a clear review column and an actionable verification column. */
+.invite-summary-grid {
+  grid-template-columns: minmax(0, 1.22fr) minmax(370px, 0.78fr);
+  gap: 14px;
+}
+
+.invite-summary-left,
+.invite-summary-right {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.invite-summary-card,
+.invite-verification-card,
+.invite-recap-card {
+  padding: 23px 24px;
+  border-color: #d2e6f5;
+  border-radius: 13px;
+  box-shadow: 0 8px 22px rgba(24, 91, 146, 0.045);
+}
+
+.invite-person-summary {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+  padding-top: 18px;
+}
+
+.invite-initials {
+  width: 128px;
+  height: 128px;
+  border-color: #cbe4f6;
+  background: linear-gradient(145deg, #d9f0ff, #eff8ff);
+  color: #0870df;
+  font-size: 32px;
+}
+
+.invite-person-summary dl,
+.invite-recap-card dl {
+  margin: 0;
+}
+
+.invite-person-summary dl > div,
+.invite-recap-card dl > div {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid #e5eef7;
+}
+
+.invite-person-summary dl > div:last-child,
+.invite-recap-card dl > div:last-child {
+  border-bottom: 0;
+}
+
+.invite-person-summary dt,
+.invite-recap-card dt {
+  color: #58799e;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.invite-person-summary dd,
+.invite-recap-card dd {
+  margin: 0;
+  color: #16477f;
+  font-size: 12px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.invite-role-confirmation {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #cfe9da;
+  border-radius: 10px;
+  background: linear-gradient(110deg, #f3fbf6, #fff);
+}
+
+.invite-role-confirmation > svg {
+  width: 58px;
+  height: 58px;
+  padding: 14px;
+  border: 1px solid #cde8d8;
+  border-radius: 50%;
+  background: #ebf8f0;
+  color: #0a8b45;
+}
+
+.invite-role-confirmation strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #08713a;
+  font-size: 15px;
+}
+
+.invite-role-confirmation p {
+  margin: 0;
+  color: #315e8d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.invite-summary-card .invite-info-note {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 9px;
+}
+
+.invite-verification-card {
+  gap: 0;
+}
+
+.invite-ready {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #cfe9da;
+  border-radius: 10px;
+  background: linear-gradient(110deg, #f3fbf6, #fbfffc);
+}
+
+.invite-ready > svg {
+  width: 52px;
+  height: 52px;
+  padding: 10px;
+  border: 2px solid #0d9148;
+  border-radius: 50%;
+  color: #0d9148;
+}
+
+.invite-ready strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #08713a;
+  font-size: 14px;
+  font-weight: 780;
+}
+
+.invite-ready p {
+  margin: 0;
+  color: #315e8d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.invite-recap-card .invite-section-title {
+  margin-bottom: 12px;
+}
+
+.invite-summary-right > .invite-actions {
+  margin-top: 0;
+  padding: 0;
+}
+
+.invite-summary-right > .invite-actions .invite-button-primary {
+  min-width: 174px;
+}
+
+@media (max-width: 1120px) {
+  .invite-content-grid:not(.invite-general-only),
+  .invite-summary-grid { grid-template-columns: 1fr; }
+  .invite-content-grid:not(.invite-general-only) > .invite-actions { grid-column: 1; }
+  .invite-role-selection,
+  .invite-permissions-card { min-height: auto; }
+}
+
+@media (max-width: 620px) {
+  .invite-role-selection,
+  .invite-permissions-card,
+  .invite-summary-card,
+  .invite-verification-card,
+  .invite-recap-card { padding: 18px; }
+  .invite-person-summary { grid-template-columns: 1fr; gap: 16px; }
+  .invite-initials { width: 96px; height: 96px; font-size: 26px; }
+  .invite-person-summary dl > div,
+  .invite-recap-card dl > div { grid-template-columns: 1fr; gap: 4px; }
+  .invite-role-choice { grid-template-columns: 18px 48px minmax(0, 1fr); gap: 10px; padding: 14px; }
+  .invite-role-choice .invite-role-icon { width: 48px; height: 48px; }
+  .invite-permission-list > div > b { font-size: 9px; }
+}

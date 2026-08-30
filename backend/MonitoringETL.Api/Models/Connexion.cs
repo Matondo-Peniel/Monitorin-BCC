@@ -1,0 +1,2 @@
+namespace MonitoringETL.Api.Models;
+public sealed class Connexion{public int IdConnexion{get;set;}public required string NomConnexion{get;set;}public required string TypeConnexion{get;set;}public required string NomServeur{get;set;}public required string NomBase{get;set;}public required string NomTableMonitoring{get;set;}public bool Actif{get;set;}=true;public bool EstDonneeTest{get;set;}public DateTime DateCreation{get;set;}=DateTime.UtcNow;public ICollection<SuiviChargement> Chargements{get;set;}=[];}
