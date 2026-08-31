@@ -67,6 +67,7 @@ export const api = {
   validationStatus: () => request('/validation/statut'),
   validationConfiguration: () => request('/validation/configuration'),
   configureValidation: data => request('/validation/configuration', { method: 'POST', body: JSON.stringify(data) }),
+  cancelValidationConfiguration: () => request('/validation/configuration', { method: 'DELETE' }),
   validationRows: table => request(`/validation/${encodeURIComponent(table)}`),
   validationLog: () => request('/validation/journal'),
   undoValidation: id => request(`/validation/journal/${id}/annuler`, { method: 'POST' }),

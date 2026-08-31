@@ -1,0 +1,16 @@
+/* Only the percentage text is compacted; card and donut dimensions stay unchanged. */
+.kpi-card .global-rate--kpi strong {
+  font-size: 27px;
+  line-height: 1;
+  letter-spacing: -.8px;
+  white-space: nowrap;
+}
+
+.dashboard-main .status-panel .donut-box > span b {
+  font-size: 20px;
+  letter-spacing: -.6px;
+}
+
+.dashboard-main .status-panel .donut-box > span small {
+  font-size: 9px;
+}

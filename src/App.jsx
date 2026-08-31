@@ -94,6 +94,7 @@ import './pagination-common.css';
 import './flux-detail-panel.css';
 import './source-configurator.css';
 import './source-configuration-prompt.css';
+import './dashboard-kpi-fix.css';
 
 const formatDate = value => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
 const routeByPage = {
@@ -134,7 +135,7 @@ function Dashboard({ onViewAll, onViewFlux, onViewAlerts, user, preferences }) {
     }
   }, [activeDate, evolutionPeriod, sourceId]);
 
-  useEffect(() => { setData(null); if (sourceId) load().catch(() => {}); }, [load, sourceId]);
+  useEffect(() => { if (sourceId) load().catch(() => {}); }, [load, sourceId]);
   useEffect(() => {
     const minutes = Number(preferences.refreshInterval);
     if (!preferences.background || !minutes) return undefined;
@@ -146,20 +147,20 @@ function Dashboard({ onViewAll, onViewFlux, onViewAlerts, user, preferences }) {
   if (error && !data) return <><Header user={user} onRefresh={load} refreshing={refreshing} /><section className="card tracking-empty">Impossible de charger les données : {error}</section></>;
   if (!data) return <><Header user={user} onRefresh={load} refreshing={refreshing} /><section className="card tracking-empty">Chargement des données de la base…</section></>;
   const metrics = data.metrics;
-  const rows = data.sources.filter(source => source.latest).map(source => ({
-    id: source.latest.id,
-    source: source.nomConnexion,
-    time: new Date(source.latest.dateHeureETL).toLocaleTimeString('fr-FR'),
-    staging: source.latest.staging ? 'Réussi' : 'Échoué',
-    entrepot: source.latest.entrepot ? 'Réussi' : 'Échoué',
-    status: source.latest.staging && source.latest.entrepot ? 'Réussi' : 'Échoué',
+  const rows = (data.recentLoadings || []).map(loading => ({
+    id: loading.id,
+    source: loading.source,
+    time: new Date(loading.dateHeureETL).toLocaleTimeString('fr-FR'),
+    staging: loading.staging ? 'Réussi' : 'Échoué',
+    entrepot: loading.entrepot ? 'Réussi' : 'Échoué',
+    status: loading.staging && loading.entrepot ? 'Réussi' : 'Échoué',
   }));
 
   return <><Header user={user} onRefresh={load} refreshing={refreshing} />{error && <section className="card tracking-empty">Impossible d’actualiser les données : {error}</section>}<section className="kpi-grid">
     <KPICard type="database" title="Sources chargées" progress={{ label: 'Taux de disponibilité', sub: `${metrics.loadedSources} / ${metrics.activeSources}`, width: `${metrics.activeSources ? metrics.loadedSources * 100 / metrics.activeSources : 0}%` }}><div className="main-number">{metrics.loadedSources} <small>sur {metrics.activeSources}</small></div></KPICard>
     <KPICard type="check" title="Source → Staging" color="green" progress={{ label: 'Taux de réussite', sub: `${metrics.stagingRate} %`, width: `${metrics.stagingRate}%` }}><SplitMetric success={metrics.stagingSuccess} failed={metrics.stagingFailed} /></KPICard>
     <KPICard type="warehouse" title="Staging → Entrepôt" progress={{ label: 'Taux de réussite', sub: `${metrics.warehouseRate} %`, width: `${metrics.warehouseRate}%` }}><SplitMetric success={metrics.warehouseSuccess} failed={metrics.warehouseFailed} /></KPICard>
-    <KPICard type="trend" title="Taux de réussite global"><div className="global-rate"><div><Doughnut data={{ datasets: [{ data: [metrics.globalRate, 100 - metrics.globalRate], backgroundColor: ['#0866e8', '#cfe4ff'], borderWidth: 0 }] }} options={{ cutout: '67%', plugins: { tooltip: { enabled: false } } }} /></div><strong>{metrics.globalRate}%</strong></div><p className="rate-copy">{metrics.total} chargement(s) le {formatDate(activeDate)}</p></KPICard>
+    <KPICard type="trend" title="Taux de réussite global"><div className="global-rate global-rate--kpi"><div><Doughnut data={{ datasets: [{ data: [metrics.globalRate, 100 - metrics.globalRate], backgroundColor: ['#0866e8', '#cfe4ff'], borderWidth: 0 }] }} options={{ cutout: '67%', plugins: { tooltip: { enabled: false } } }} /></div><strong>{metrics.globalRate}%</strong></div><p className="rate-copy">{metrics.total} chargement(s) le {formatDate(activeDate)}</p></KPICard>
   </section><section className="middle-grid"><EvolutionChart evolution={data.evolution} period={evolutionPeriod} onPeriodChange={setEvolutionPeriod} /><StatusDonut metrics={metrics} /><ETLFlow onViewDetails={onViewFlux} metrics={metrics} /></section><section className="bottom-grid"><LoadingTable onViewAll={onViewAll} loadings={rows} /><AlertsPanel onViewAll={onViewAlerts} alerts={data.alerts} /></section></>;
 }
 
