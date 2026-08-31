@@ -59,6 +59,17 @@ public sealed class SourcesController(MonitoringDbContext db, IConfiguration con
         return Ok(new { source.IdConnexion, source.NomConnexion, source.NomServeur, source.NomBase, source.NomTableMonitoring, message = "Table de suivi ETL configurée avec succès." });
     }
 
+    [Authorize(Roles = "ADMINISTRATEUR"), HttpDelete("configuration/{id:int}")]
+    public async Task<IActionResult> CancelConfiguration(int id, CancellationToken ct)
+    {
+        var source = await db.Connexions.SingleOrDefaultAsync(x => x.IdConnexion == id && x.Actif, ct);
+        if (source is null) return NotFound(new { message = "Configuration de source introuvable." });
+        source.Actif = false;
+        db.JournauxAudit.Add(new JournalAudit { IdUtilisateur = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : null, Action = "ANNULATION_CONFIGURATION_SOURCE", AdresseIP = HttpContext.Connection.RemoteIpAddress?.ToString(), Details = $"Configuration de source annulée : {source.NomConnexion}." });
+        await db.SaveChangesAsync(ct);
+        return Ok(new { message = "Configuration de source annulée." });
+    }
+
     private SqlConnection CreateConnection(string database) { var builder = new SqlConnectionStringBuilder(ConnectionString) { InitialCatalog = database, ApplicationName = "Monitoring BCC - Lecture seule" }; return new SqlConnection(builder.ConnectionString); }
     private async Task<bool> DatabaseIsAccessible(string database, CancellationToken ct) { await using var connection = CreateConnection("master"); await connection.OpenAsync(ct); await using var command = connection.CreateCommand(); command.CommandText = "SELECT COUNT(1) FROM sys.databases WHERE [name]=@database AND [state]=0 AND HAS_DBACCESS([name])=1"; command.Parameters.AddWithValue("@database", database); return Convert.ToInt32(await command.ExecuteScalarAsync(ct)) == 1; }
     private async Task<List<TableCompatible>> CompatibleTables(string database, CancellationToken ct)

@@ -20,6 +20,7 @@ export default function SourcePage({ onNavigate, user }) {
   const [rows, setRows] = useState([]), [latest, setLatest] = useState(null);
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [refreshKey, setRefreshKey] = useState(0);
   const [canConfigure, setCanConfigure] = useState(Boolean(user?.roles?.includes('ADMINISTRATEUR')));
+  const [configurationOpen, setConfigurationOpen] = useState(false);
 
   useEffect(() => { if (!user) api.me().then(current => setCanConfigure(Boolean(current?.roles?.includes('ADMINISTRATEUR')))).catch(() => {}); }, [user]);
   useEffect(() => { if (!sourceId) return; let mounted = true; setLoading(true); setError(''); Promise.all([api.history(sourceId, activeDate, addDays(activeDate, 1), 1, 100), api.latest(sourceId)]).then(([history, last]) => { if (mounted) { setRows(history.donnees || []); setLatest(last?.donnee || null); } }).catch(e => { if (mounted) setError(e.message); }).finally(() => { if (mounted) setLoading(false); }); return () => { mounted = false; }; }, [activeDate, refreshKey, sourceId]);
@@ -29,14 +30,25 @@ export default function SourcePage({ onNavigate, user }) {
   const staging = rows.filter(row => row.staging).length, warehouse = rows.filter(row => row.entrepot).length;
   const latestDate = latest?.dateHeureETL ? localDate(new Date(latest.dateHeureETL)) : '';
   const refresh = useCallback(() => setRefreshKey(value => value + 1), []);
-  const configured = async item => { await refreshSources(); setSourceId(String(item.idConnexion)); };
+  const configured = async item => { await refreshSources(); setSourceId(String(item.idConnexion)); setConfigurationOpen(false); };
+  const cancelConfiguration = async () => {
+    if (!source || !window.confirm(`Annuler la configuration de la source « ${source.nomConnexion} » ?`)) return;
+    setError('');
+    try {
+      await api.cancelSourceConfiguration(source.idConnexion);
+      setSourceId('');
+      await refreshSources();
+    } catch (exception) {
+      setError(exception.message || 'Impossible d’annuler la configuration de cette source.');
+    }
+  };
 
   if (error && !source && !canConfigure) return <main className="ui-page"><section className="ui-panel"><ErrorState message={`Impossible de charger les sources : ${error}`} /></section></main>;
   return <main className="ui-page">
     <header className="ui-page-header"><div className="ui-page-heading"><div className="ui-eyebrow"><Database />Configuration surveillée</div><h1>Sources SQL Server</h1><p>Configurez puis consultez la table qui contient le suivi des chargements ETL.</p></div><div className="ui-header-actions">{sourceOptions.length > 0 && <CustomSelect label="Source" value={sourceId} onChange={setSourceId} options={sourceOptions} icon={Server} ariaLabel="Source surveillée" placeholder="Sélectionnez une source" />}<GlobalDateControls onRefresh={refresh} refreshing={loading} /></div></header>
-    <SourceConfigurator enabled={canConfigure} onConfigured={configured} />
+    {canConfigure && (!source || configurationOpen) && <SourceConfigurator enabled onConfigured={configured} />}
     {error && source ? <section className="ui-panel"><ErrorState message={`Impossible de charger les exécutions : ${error}`} /></section> : loading || !source ? <section className="ui-panel"><EmptyState title={loading ? 'Chargement de la source' : 'Aucune source configurée'} message={loading ? 'Lecture de la configuration et des exécutions enregistrées…' : 'Un administrateur doit sélectionner une base et sa table de suivi ETL.'} /></section> : <section className="ui-source-layout">
-      <section className="ui-panel ui-source-overview"><span className="ui-source-emblem"><Database /></span><div><h2>{source.nomConnexion}</h2><dl className="ui-source-facts"><Fact label="Type de connexion" value={source.typeConnexion} /><Fact label="Serveur" value={source.nomServeur} /><Fact label="Base de données" value={source.nomBase} /><Fact label="Table surveillée" value={source.nomTableMonitoring} /></dl></div></section>
+      <section className="ui-panel ui-source-overview"><span className="ui-source-emblem"><Database /></span><div><h2>{source.nomConnexion}</h2><dl className="ui-source-facts"><Fact label="Type de connexion" value={source.typeConnexion} /><Fact label="Serveur" value={source.nomServeur} /><Fact label="Base de données" value={source.nomBase} /><Fact label="Table surveillée" value={source.nomTableMonitoring} /></dl>{canConfigure && <div className="ui-toolbar-group"><button className="ui-button ui-button--secondary" type="button" onClick={() => setConfigurationOpen(true)}>Modifier la configuration</button><button className="ui-button ui-button--secondary" type="button" onClick={cancelConfiguration}>Annuler la configuration</button></div>}</div></section>
       <section className="ui-panel ui-source-stats"><h2>Statistiques du {dateLabel(activeDate)}</h2><div className="ui-source-stat-list"><Stat icon={Database} title="Exécutions" value={rows.length} /><Stat icon={CheckCircle2} tone="success" title="Staging réussis" value={staging} /><Stat icon={Landmark} tone="success" title="Data Warehouse réussis" value={warehouse} /></div></section>
       <section className="ui-panel ui-executions-card"><header className="ui-table-card-head"><div><h2 className="ui-panel-title">Exécutions de la journée</h2><p className="ui-panel-copy">{rows.length} exécution{rows.length > 1 ? 's' : ''} le {dateLabel(activeDate)}</p></div><div className="ui-toolbar-group">{!rows.length && latest && latestDate !== activeDate && <button className="ui-button ui-button--secondary" type="button" onClick={() => setActiveDate(latestDate)}><Clock3 />Voir la dernière exécution</button>}<button className="ui-button ui-button--secondary" type="button" onClick={() => onNavigate?.('Historique')}><History />Consulter l’historique</button></div></header>{rows.length ? <div className="ui-table-wrap"><table className="ui-table"><thead><tr><th>Date et heure</th><th>Staging</th><th>Data Warehouse</th><th>Statut global</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><strong>{formatDateTime(row.dateHeureETL)}</strong></td><td><StepStatus success={row.staging} /></td><td><StepStatus success={row.entrepot} /></td><td><OverallStatus value={globalStatus(row)} /></td></tr>)}</tbody></table></div> : <EmptyState title="Aucune exécution pour cette date" message={latest ? `La dernière exécution enregistrée date du ${formatDateTime(latest.dateHeureETL)}.` : 'Cette source ne contient encore aucune exécution enregistrée.'} />}</section>
     </section>}

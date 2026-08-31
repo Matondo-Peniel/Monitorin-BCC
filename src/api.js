@@ -88,6 +88,7 @@ export const api = {
   sourceDatabases: () => request('/sources/configuration/bases'),
   sourceTables: database => request(`/sources/configuration/tables?baseDonnees=${encodeURIComponent(database)}`),
   configureSource: data => request('/sources/configuration', { method: 'POST', body: JSON.stringify(data) }),
+  cancelSourceConfiguration: id => request(`/sources/configuration/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   latest: id => request(`/monitoring/latest?sourceId=${id}`),
   dashboard: (date, jours = '7', sourceId = '') => request(`/dashboard?jours=${encodeURIComponent(jours)}${date ? `&date=${encodeURIComponent(date)}` : ''}${sourceId ? `&sourceId=${encodeURIComponent(sourceId)}` : ''}`),
   summary: (id, debut, fin) => request(`/monitoring/summary?sourceId=${id}&debut=${debut}&fin=${fin}`),
