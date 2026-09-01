@@ -125,6 +125,48 @@
   background: #fff;
 }
 
+/* Each connector follows its label and stops before the next numbered marker. */
+.invite-stepper {
+  min-height: 70px;
+  padding: 0 74px 0 clamp(74px, 15vw, 200px);
+}
+
+.invite-stepper li {
+  display: grid;
+  grid-template-columns: 30px max-content minmax(20px, 1fr);
+  align-items: center;
+  justify-items: start;
+  gap: 12px;
+  text-align: left;
+}
+
+.invite-stepper li:not(:last-child)::after {
+  position: static;
+  grid-column: 3;
+  align-self: center;
+  justify-self: center;
+  width: calc(100% - 28px);
+  height: 2px;
+  background: #d9e8f5;
+}
+
+.invite-stepper li.complete:not(:last-child)::after {
+  background: #62a7e8;
+}
+
+.invite-stepper li > span {
+  grid-column: 1;
+  padding: 0;
+}
+
+.invite-stepper li > b {
+  grid-column: 2;
+  padding: 0;
+  background: transparent;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .invite-content-grid.invite-general-only {
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
@@ -252,7 +294,8 @@
   .invite-header h1 { font-size: 27px; }
   .invite-header p { font-size: 13px; }
   .invite-stepper { padding: 14px 8px; }
-  .invite-stepper li:not(:last-child)::after { left: calc(50% + 29px); width: calc(100% - 58px); }
+  .invite-stepper li { gap: 7px; font-size: 10px; }
+  .invite-stepper li:not(:last-child)::after { position: static; width: 100%; }
   .invite-general-only .invite-general-card { min-height: 0; padding: 20px; }
   .invite-general-only .invite-form-grid { grid-template-columns: 1fr; gap: 16px; }
 }
