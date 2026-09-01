@@ -9,7 +9,7 @@ const navItems = [
   { label: 'Tableau de bord', icon: LayoutGrid },
   { label: 'Suivi des chargements', icon: Database },
   { label: 'Flux ETL', icon: Workflow },
-  { label: 'Sources', icon: Server },
+  { label: 'Sources', icon: Server, administratorOnly: true },
   { label: 'Historique', icon: History },
   { label: 'Validation des données', icon: ClipboardCheck, analystOnly: true },
   { label: 'Alertes', icon: Bell },

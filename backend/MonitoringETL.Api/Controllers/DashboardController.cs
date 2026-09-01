@@ -42,6 +42,13 @@ public sealed class DashboardController(MonitoringDbContext db) : ControllerBase
             .Select(x => new { x.Staging, x.Entrepot })
             .ToListAsync(ct);
 
+        var recentLoadings = await db.SuiviChargements.AsNoTracking()
+            .Where(x => x.DateHeureETL >= today && x.DateHeureETL < tomorrow && (!sourceId.HasValue || x.IdConnexion == sourceId.Value))
+            .OrderByDescending(x => x.DateHeureETL)
+            .Take(10)
+            .Select(x => new { x.Id, source = x.Connexion.NomConnexion, x.DateHeureETL, x.Staging, x.Entrepot })
+            .ToListAsync(ct);
+
         var history = await db.SuiviChargements.AsNoTracking()
             .Where(x => x.DateHeureETL >= start && x.DateHeureETL < tomorrow && (!sourceId.HasValue || x.IdConnexion == sourceId.Value))
             .GroupBy(x => x.DateHeureETL.Date)
@@ -78,6 +85,7 @@ public sealed class DashboardController(MonitoringDbContext db) : ControllerBase
         {
             generatedAt = DateTime.Now,
             sources,
+            recentLoadings,
             metrics = new
             {
                 activeSources = sources.Count,

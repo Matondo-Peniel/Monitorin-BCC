@@ -130,7 +130,7 @@ export default function InviteUserPage({ onCancel, onComplete }) {
           <label className="invite-field invite-field-wide"><span>Nom complet <b>*</b></span><input name="nomComplet" value={form.nomComplet} onChange={update} placeholder="Ex. Mayala Kilonga Nzambi Florin" autoComplete="name" required /></label>
           <label className="invite-field invite-field-wide"><span>Adresse email <b>*</b></span><input name="email" type="email" value={form.email} onChange={update} placeholder="Ex. nom@bcc.cd" autoComplete="email" required /></label>
         </div>
-        <div className="invite-security-note"><LockKeyhole /><div><strong>Aucun mot de passe demandé</strong><p>L’utilisateur choisira lui-même son mot de passe sécurisé après réception de l’invitation.</p></div></div>
+        <div className="invite-security-note"><LockKeyhole /><div><strong>Aucun mot de passe demandé</strong><p>Un code d’activation sécurisé sera généré pour être transmis manuellement à l’utilisateur.</p></div></div>
         {error && <p className="invite-error">{error}</p>}
       </section>
       <WizardActions onCancel={onCancel} onNext={() => {}} nextLabel="Suivant" submit />

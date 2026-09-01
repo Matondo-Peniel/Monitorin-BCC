@@ -3,7 +3,7 @@ import { Check, X, ArrowRight, Database, Landmark } from 'lucide-react';
 
 export default function ETLFlow({ onViewDetails, metrics = {} }) {
   const stages = [
-    ['SOURCES', Database, `${metrics.loadedSources||0} / ${metrics.activeSources||0}`, '', (metrics.loadedSources||0)>0],
+    ['SOURCES', Database, `${metrics.loadedSources||0} / ${metrics.activeSources||0}`, `${metrics.activeSources ? Math.round(metrics.loadedSources * 100 / metrics.activeSources) : 0}%`, (metrics.loadedSources||0)>0],
     ['STAGING', Database, `${metrics.stagingSuccess||0} / ${metrics.total||0}`, `${metrics.stagingRate||0}%`, (metrics.stagingFailed||0)===0&&(metrics.total||0)>0],
     ['DATA WAREHOUSE', Landmark, `${metrics.warehouseSuccess||0} / ${metrics.total||0}`, `${metrics.warehouseRate||0}%`, (metrics.warehouseFailed||0)===0&&(metrics.total||0)>0],
   ];

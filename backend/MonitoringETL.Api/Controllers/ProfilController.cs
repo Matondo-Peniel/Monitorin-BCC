@@ -11,8 +11,9 @@ namespace MonitoringETL.Api.Controllers;
 public sealed class ProfilController(UserManager<ApplicationUser> users, MonitoringDbContext db, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private const long MaximumPhotoSize = 2 * 1024 * 1024;
-    private static readonly string[] BasePermissions = ["Tableau de bord", "Suivi des chargements", "Flux ETL", "Sources", "Historique", "Alertes", "Rapports", "Paramètres"];
-    private static readonly string[] AdministratorPermissions = ["Gestion des utilisateurs", "Résolution des alertes"];
+    private static readonly string[] ConsultantPermissions = ["Tableau de bord", "Suivi des chargements", "Flux ETL", "Historique", "Alertes", "Rapports", "Paramètres"];
+    private static readonly string[] AnalystPermissions = ["Validation des données", "Corrections des données", "Journal de validation", "Résolution des alertes"];
+    private static readonly string[] AdministratorPermissions = ["Configuration des sources", "Configuration de validation", "Gestion des utilisateurs", "Résolution des alertes"];
 
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken ct)
@@ -66,6 +67,7 @@ public sealed class ProfilController(UserManager<ApplicationUser> users, Monitor
     {
         var roles = await users.GetRolesAsync(user);
         var isAdministrator = roles.Contains("ADMINISTRATEUR", StringComparer.OrdinalIgnoreCase);
+        var isAnalyst = roles.Contains("ANALYSTE", StringComparer.OrdinalIgnoreCase);
         var activities = await db.JournauxAudit.AsNoTracking()
             .Where(entry => entry.IdUtilisateur == user.Id)
             .OrderByDescending(entry => entry.DateHeure)
@@ -83,7 +85,7 @@ public sealed class ProfilController(UserManager<ApplicationUser> users, Monitor
             user.DateCreation,
             user.DerniereConnexion,
             roles,
-            permissions = isAdministrator ? BasePermissions.Concat(AdministratorPermissions) : BasePermissions,
+            permissions = isAdministrator ? ConsultantPermissions.Concat(AnalystPermissions).Concat(AdministratorPermissions) : isAnalyst ? ConsultantPermissions.Concat(AnalystPermissions) : ConsultantPermissions,
             activites = activities,
             sessionsSupported = false,
             sessions = Array.Empty<object>(),

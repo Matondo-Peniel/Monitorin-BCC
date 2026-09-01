@@ -64,8 +64,10 @@ async function upload(path, formData) {
 
 export const api = {
   validationTables: () => request('/validation/tables'),
+  validationStatus: () => request('/validation/statut'),
   validationConfiguration: () => request('/validation/configuration'),
   configureValidation: data => request('/validation/configuration', { method: 'POST', body: JSON.stringify(data) }),
+  cancelValidationConfiguration: () => request('/validation/configuration', { method: 'DELETE' }),
   validationRows: table => request(`/validation/${encodeURIComponent(table)}`),
   validationLog: () => request('/validation/journal'),
   undoValidation: id => request(`/validation/journal/${id}/annuler`, { method: 'POST' }),
@@ -86,6 +88,7 @@ export const api = {
   sourceDatabases: () => request('/sources/configuration/bases'),
   sourceTables: database => request(`/sources/configuration/tables?baseDonnees=${encodeURIComponent(database)}`),
   configureSource: data => request('/sources/configuration', { method: 'POST', body: JSON.stringify(data) }),
+  cancelSourceConfiguration: id => request(`/sources/configuration/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   latest: id => request(`/monitoring/latest?sourceId=${id}`),
   dashboard: (date, jours = '7', sourceId = '') => request(`/dashboard?jours=${encodeURIComponent(jours)}${date ? `&date=${encodeURIComponent(date)}` : ''}${sourceId ? `&sourceId=${encodeURIComponent(sourceId)}` : ''}`),
   summary: (id, debut, fin) => request(`/monitoring/summary?sourceId=${id}&debut=${debut}&fin=${fin}`),

@@ -17,7 +17,7 @@ public sealed class UtilisateursController(
     UserManager<ApplicationUser> users,
     RoleManager<IdentityRole<Guid>> roles,
     MonitoringDbContext db,
-    IWebHostEnvironment environment) : ControllerBase
+    IConfiguration configuration) : ControllerBase
 {
     private static readonly HashSet<string> ManagedRoles = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -79,6 +79,8 @@ public sealed class UtilisateursController(
         AddAudit("INVITATION_UTILISATEUR", $"Invitation créée pour l’utilisateur {user.Id}.");
         await db.SaveChangesAsync(ct);
 
+        var deliveryMode = configuration["Invitations:Mode"]?.Trim().ToUpperInvariant() ?? "MANUAL";
+        var manualDelivery = deliveryMode == "MANUAL";
         return StatusCode(StatusCodes.Status201Created, new
         {
             user.Id,
@@ -86,7 +88,8 @@ public sealed class UtilisateursController(
             user.Email,
             role,
             expiration = DateTime.UtcNow.AddHours(24),
-            token = environment.IsDevelopment() ? token : null,
+            token = manualDelivery ? token : null,
+            modeLivraison = manualDelivery ? "MANUEL" : "EMAIL",
         });
     }
 
