@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardCheck, Database, Edit3, History, LayoutDashboard, Plus, RefreshCw, Settings2, Table2, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, ClipboardCheck, Database, Edit3, History, LayoutDashboard, Plus, RefreshCw, Settings2, Table2, X } from 'lucide-react';
 import { api } from '../api';
 import '../validation-page.css';
 import '../validation-workspace.css';
@@ -38,6 +38,8 @@ export default function ValidationPage({ user }) {
   const [factTablesOpen, setFactTablesOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [configurationOpen, setConfigurationOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancellingConfiguration, setCancellingConfiguration] = useState(false);
 
   const loadWorkspace = async (silent = false) => {
     silent ? setRefreshing(true) : setLoading(true);
@@ -110,19 +112,21 @@ export default function ValidationPage({ user }) {
 
   const canConfigure = isAdministrator;
   const cancelConfiguration = async () => {
-    if (!window.confirm('Annuler la configuration de validation ? Les données et le journal ne seront pas supprimés.')) return;
+    setCancellingConfiguration(true);
     setError('');
     try {
       await api.cancelValidationConfiguration();
       setConfiguration(null);
       setConfigurationOpen(false);
       setConfigured(false);
+      setCancelConfirmOpen(false);
     } catch (exception) {
       setError(exception.message || 'Impossible d’annuler la configuration.');
     }
+    finally { setCancellingConfiguration(false); }
   };
   if (configured === null || loading) return <main className="ui-page validation-page"><section className="ui-panel validation-empty">Chargement de la configuration de validation…</section></main>;
-  if (!configured) return <ValidationSetup canConfigure={canConfigure} fullScreen={configurationOpen} onBack={() => loadWorkspace()} onConfigured={() => loadWorkspace()} />;
+  if (!configured) return <ValidationSetup canConfigure={canConfigure} fullScreen={configurationOpen} onBack={() => loadWorkspace()} onConfigured={() => { setView('overview'); setConfigurationOpen(false); loadWorkspace(); }} />;
   return <main className={`ui-page validation-page ${factTablesOpen ? 'fact-tables-mode' : ''}${journalOpen ? ' journal-mode' : ''}${configurationOpen ? ' configuration-mode' : ''}`}>
     <header className="ui-page-header validation-page__header">
       <div className="ui-page-heading"><div className="ui-eyebrow"><ClipboardCheck />Contexte indépendant</div><h1>Validation des données</h1><p>Contrôlez et corrigez les tables de faits activées, sans dépendre de la configuration des sources de chargement.</p></div>
@@ -134,9 +138,10 @@ export default function ValidationPage({ user }) {
       {view === 'overview' && <ValidationOverview tables={tables} journal={journal} canConfigure={canConfigure} onOpenTables={() => { setView('tables'); setFactTablesOpen(true); }} onOpenJournal={() => { setView('journal'); setJournalOpen(true); }} onOpenConfiguration={() => { setView('configuration'); setConfigurationOpen(true); }} />}
       {view === 'tables' && (factTablesOpen ? <section className="ui-panel validation-workspace"><header className="validation-workspace__head"><div><button className="validation-back" type="button" onClick={() => setFactTablesOpen(false)}><ArrowLeft />Retour aux tables de faits</button><h2 className="ui-panel-title">{tableLabel(active)}</h2><p className="ui-panel-copy">Les indicateurs sont détectés directement dans la table de faits.</p></div><span className="validation-count"><CheckCircle2 />{activeChanges} modification{activeChanges > 1 ? 's' : ''}</span></header><div className="validation-tabs" role="tablist" aria-label="Tables de faits">{tables.map(table => <button type="button" role="tab" aria-selected={active === table.code} className={active === table.code ? 'active' : ''} onClick={() => setActive(table.code)} key={table.code}>{table.nom}</button>)}</div>{loadingRows ? <div className="validation-empty">Chargement de {tableLabel(active)}…</div> : <div className="ui-table-wrap"><table className="ui-table validation-table"><thead><tr><th>Date</th>{indicators.map(key => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><strong>{date(row.dateReference)}</strong><span className="validation-agency">{row.agence}</span></td>{indicators.map(key => <td key={key}><button className="validation-value" type="button" onClick={() => { setSelected({ row, key }); setAmount(''); setReason(''); }} aria-label={`Modifier ${key}`}><span>{number(row.valeurs?.[key])}</span><Edit3 /></button></td>)}</tr>)}</tbody></table>{!rows.length && <div className="validation-empty">Aucune donnée disponible dans cette table.</div>}</div>}</section> : <FactTablesLanding tables={tables} onOpen={() => setFactTablesOpen(true)} />)}
       {view === 'journal' && (journalOpen ? <><button className="journal-screen__back" type="button" onClick={() => { setJournalOpen(false); setView('overview'); }}><ArrowLeft />Retour à la validation</button><ValidationJournalActions journal={journal} canUndo={canConfigure} onChanged={() => loadWorkspace(true)} /></> : <JournalLanding journal={journal} onOpen={() => setJournalOpen(true)} />)}
-      {view === 'configuration' && (configurationOpen ? <><button className="configuration-screen__back" type="button" onClick={() => { setConfigurationOpen(false); setView('overview'); }}><ArrowLeft />Retour à la validation</button><ValidationConfiguration configuration={configuration} canConfigure={canConfigure} onReset={cancelConfiguration} /></> : <ConfigurationLanding configuration={configuration} onOpen={() => setConfigurationOpen(true)} />)}
+      {view === 'configuration' && configurationOpen && <><button className="configuration-screen__back" type="button" onClick={() => { setConfigurationOpen(false); setView('overview'); }}><ArrowLeft />Retour à la validation</button><ValidationConfiguration configuration={configuration} canConfigure={canConfigure} onReset={() => setCancelConfirmOpen(true)} /></>}
     </>}
     {selected && <div className="ui-modal-overlay" role="presentation" onMouseDown={() => !saving && setSelected(null)}><form className="ui-modal validation-modal" onSubmit={save} onMouseDown={event => event.stopPropagation()} aria-labelledby="correction-title"><header className="ui-modal-head"><div><p className="validation-modal__eyebrow">{tableLabel(active)}</p><h2 id="correction-title">Modifier l’indicateur {selected.key}</h2></div><button className="ui-button ui-icon-button" type="button" onClick={() => setSelected(null)} disabled={saving} aria-label="Fermer"><X /></button></header><div className="ui-modal-body"><p className="validation-modal__copy">Date : <strong>{date(selected.row.dateReference)}</strong> · {selected.row.agence}</p><div className="validation-preview"><div><span>Ancienne valeur</span><strong>{number(selectedValue)}</strong></div><Plus /><div><span>Nouvelle valeur</span><strong>{hasNewValue ? number(nextValue) : '—'}</strong></div></div><label className="validation-field"><span>Nouvelle valeur</span><input type="number" step="any" autoFocus value={amount} onChange={event => setAmount(event.target.value)} placeholder="Ex. 25" required /></label><label className="validation-field"><span>Motif de la correction</span><textarea value={reason} onChange={event => setReason(event.target.value)} placeholder="Décrivez la raison de cet ajustement…" required /></label><p className={`validation-form-hint${canSave ? ' is-ready' : ''}`} role="status">{correctionHint}</p></div><footer className="ui-modal-foot"><button className="ui-button ui-button--secondary" type="button" onClick={() => setSelected(null)} disabled={saving}>Annuler</button><button className="ui-button ui-button--primary" type="submit" disabled={!canSave}><CheckCircle2 />{saving ? 'Enregistrement…' : 'Enregistrer la correction'}</button></footer></form></div>}
+    {cancelConfirmOpen && <div className="ui-modal-overlay validation-cancel-overlay" role="presentation" onMouseDown={() => !cancellingConfiguration && setCancelConfirmOpen(false)}><section className="ui-modal validation-cancel-modal" role="dialog" aria-modal="true" aria-labelledby="validation-cancel-title" onMouseDown={event => event.stopPropagation()}><header><span className="validation-cancel-modal__icon"><AlertTriangle /></span><button className="ui-button ui-icon-button" type="button" onClick={() => setCancelConfirmOpen(false)} disabled={cancellingConfiguration} aria-label="Fermer"><X /></button></header><div className="validation-cancel-modal__content"><p>MODIFICATION DE CONFIGURATION</p><h2 id="validation-cancel-title">Annuler la configuration ?</h2><span>La validation des données sera désactivée, mais les tables de faits et le journal resteront inchangés.</span><div className="validation-cancel-modal__notice"><CheckCircle2 /><span><strong>Données préservées</strong> Aucune ligne de données ni trace d’audit ne sera supprimée.</span></div></div><footer><button className="ui-button ui-button--secondary" type="button" onClick={() => setCancelConfirmOpen(false)} disabled={cancellingConfiguration}>Conserver la configuration</button><button className="ui-button validation-cancel-modal__confirm" type="button" onClick={cancelConfiguration} disabled={cancellingConfiguration}>{cancellingConfiguration ? 'Annulation…' : 'Annuler la configuration'}</button></footer></section></div>}
   </main>;
 }
 
@@ -154,10 +159,6 @@ function FactTablesLanding({ tables, onOpen }) {
 
 function JournalLanding({ journal, onOpen }) {
   return <section className="ui-panel fact-tables-landing journal-landing"><div className="fact-tables-landing__icon"><History /></div><div><p className="validation-modal__eyebrow">ESPACE DÉDIÉ</p><h2 className="ui-panel-title">Journal des modifications</h2><p className="ui-panel-copy">Consultez les {journal.length} correction{journal.length > 1 ? 's' : ''}, leurs valeurs avant/après et, si nécessaire, annulez une correction autorisée.</p></div><button className="ui-button ui-button--primary" type="button" onClick={onOpen}><History />Ouvrir le journal</button></section>;
-}
-
-function ConfigurationLanding({ configuration, onOpen }) {
-  return <section className="ui-panel fact-tables-landing configuration-landing"><div className="fact-tables-landing__icon"><Settings2 /></div><div><p className="validation-modal__eyebrow">ESPACE DÉDIÉ</p><h2 className="ui-panel-title">Configuration de validation</h2><p className="ui-panel-copy">Consultez la base UAT, le schéma des tables de faits et le journal d’audit avant de modifier cette configuration.</p></div><button className="ui-button ui-button--primary" type="button" onClick={onOpen}><Settings2 />Ouvrir la configuration</button></section>;
 }
 
 function ValidationJournalActions({ journal, canUndo, onChanged, fullScreen = false, onBack }) {

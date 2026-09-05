@@ -12,7 +12,6 @@ import AlertsPanel from './components/AlertsPanel';
 import { api } from './api';
 import AllLoadings from './components/AllLoadings';
 import FluxETLPage from './components/FluxETLPage';
-import DashboardsPage from './components/DashboardsPage';
 import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 import AboutPage from './components/AboutPage';
@@ -83,7 +82,6 @@ import './settings-tracking-refinement.css';
 import './invite-general-refinement.css';
 import './alert-filter-refinement.css';
 import './user-management-actions.css';
-import './dashboards-page.css';
 import './tracking-kpis-modern.css';
 import './settings-runtime.css';
 import './refresh-unification.css';
@@ -102,10 +100,10 @@ const routeByPage = {
   'Flux ETL': '/flux-etl', Sources: '/sources', Historique: '/historique', Alertes: '/alertes',
   Rapports: '/rapports', Paramètres: '/parametres', Utilisateurs: '/utilisateurs',
   'Enregistrer un utilisateur': '/utilisateurs/nouveau', 'Mon profil': '/profil', 'À propos': '/a-propos',
-  'Tableaux de bord': '/tableaux-de-bord',
   'Validation des données': '/validation',
 };
 const pageByRoute = Object.fromEntries(Object.entries(routeByPage).map(([page, route]) => [route, page]));
+pageByRoute['/tableaux-de-bord'] = 'Tableau de bord';
 const appBasePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const pageFromLocation = fallback => {
   const pathname = window.location.pathname.startsWith(appBasePath) ? window.location.pathname.slice(appBasePath.length) || '/' : window.location.pathname;
@@ -173,7 +171,6 @@ function AppContent({ user, onLogout, onUserUpdate }) {
   const [createdUsers, setCreatedUsers] = useState([]);
   const showAll = active === 'Tous les chargements' || active === 'Suivi des chargements';
   const showFlux = active === 'Flux ETL';
-  const showDashboards = active === 'Tableaux de bord';
   const showProfile = active === 'Mon profil';
   const showSettings = active === 'Paramètres';
   const showAbout = active === 'À propos';
@@ -206,7 +203,7 @@ function AppContent({ user, onLogout, onUserUpdate }) {
   if (showValidation) return <div className="dashboard-app"><Sidebar user={user} onLogout={onLogout} active={active} setActive={navigate} open={open} setOpen={setOpen} /><main className="dashboard-main"><ValidationPage user={user} /></main></div>;
   if (isTrackingPage && loadingSources) return <div className="dashboard-app"><Sidebar user={user} onLogout={onLogout} active={active} setActive={navigate} open={open} setOpen={setOpen} /><main className="dashboard-main"><SourceConfigurationPrompt loading /></main></div>;
   if (isTrackingPage && !sourceId) return <div className="dashboard-app"><Sidebar user={user} onLogout={onLogout} active={active} setActive={navigate} open={open} setOpen={setOpen} /><main className="dashboard-main"><SourceConfigurationPrompt onConfigure={isAdministrator ? () => navigate('Sources') : undefined} /></main></div>;
-  return <div className="dashboard-app"><Sidebar user={user} onLogout={onLogout} active={showRegister ? 'Utilisateurs' : showAll ? 'Suivi des chargements' : active} setActive={navigate} open={open} setOpen={setOpen} /><main className="dashboard-main">{showRegister ? <RegisterUserPage onCancel={() => navigate('Utilisateurs')} onComplete={createdUser => { setCreatedUsers(items => [...items, createdUser]); navigate('Utilisateurs'); }} /> : showUsers ? <SettingsPage key="users-management" usersOnly onNavigate={navigate} currentUser={user} onUserUpdate={onUserUpdate} /> : showSource ? <SourcePage onNavigate={navigate} user={user} /> : showHistory ? <HistoryPage /> : showModule ? <ModulePage type={active} user={user} /> : showAbout ? <AboutPage /> : showSettings ? <SettingsPage key="platform-settings" /> : showProfile ? <ProfilePage user={user} onUserUpdate={onUserUpdate} /> : showAll ? <AllLoadings onBack={() => navigate('Tableau de bord')} /> : showDashboards ? <DashboardsPage onNavigate={navigate} /> : showFlux ? <FluxETLPage onNavigate={navigate} /> : <Dashboard user={user} preferences={preferences} onViewAll={() => navigate('Tous les chargements')} onViewFlux={() => navigate('Flux ETL')} onViewAlerts={() => navigate('Alertes')} />}</main></div>;
+  return <div className="dashboard-app"><Sidebar user={user} onLogout={onLogout} active={showRegister ? 'Utilisateurs' : showAll ? 'Suivi des chargements' : active} setActive={navigate} open={open} setOpen={setOpen} /><main className="dashboard-main">{showRegister ? <RegisterUserPage onCancel={() => navigate('Utilisateurs')} onComplete={createdUser => { setCreatedUsers(items => [...items, createdUser]); navigate('Utilisateurs'); }} /> : showUsers ? <SettingsPage key="users-management" usersOnly onNavigate={navigate} currentUser={user} onUserUpdate={onUserUpdate} /> : showSource ? <SourcePage onNavigate={navigate} user={user} /> : showHistory ? <HistoryPage /> : showModule ? <ModulePage type={active} user={user} /> : showAbout ? <AboutPage /> : showSettings ? <SettingsPage key="platform-settings" /> : showProfile ? <ProfilePage user={user} onUserUpdate={onUserUpdate} /> : showAll ? <AllLoadings onBack={() => navigate('Tableau de bord')} /> : showFlux ? <FluxETLPage onNavigate={navigate} /> : <Dashboard user={user} preferences={preferences} onViewAll={() => navigate('Tous les chargements')} onViewFlux={() => navigate('Flux ETL')} onViewAlerts={() => navigate('Alertes')} />}</main></div>;
 }
 
 function SourceConfigurationPrompt({ loading = false, onConfigure }) {
