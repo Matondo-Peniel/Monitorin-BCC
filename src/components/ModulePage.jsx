@@ -15,8 +15,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { api } from '../api';
-import { useActiveDate } from '../active-date';
-import GlobalDateControls from './GlobalDateControls';
+import { useActiveSource } from '../active-source';
+import { addDays, localDate } from '../date';
 import BccBrand from './BccBrand';
 import CustomSelect from './CustomSelect';
 import Pagination from './Pagination';
@@ -216,19 +216,37 @@ function AlertsPage({ canResolve }) {
 }
 
 function ReportsPage() {
-  const { activeDate: date } = useActiveDate();
+  const date = localDate();
+  const { sourceId, sources, setSourceId } = useActiveSource();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [period, setPeriod] = useState('daily');
+  const [startDate, setStartDate] = useState(addDays(date, -6));
+  const [endDate, setEndDate] = useState(date);
+
+  useEffect(() => {
+    if (period === '7days') setStartDate(addDays(date, -6));
+    if (period === '14days') setStartDate(addDays(date, -13));
+    if (period !== 'custom') setEndDate(date);
+  }, [date, period]);
+
+  const sourceOptions = sources.map(source => ({ value: String(source.idConnexion), label: source.nomConnexion }));
+  const isHistoryExport = period !== 'daily';
+  const validRange = startDate && endDate && startDate <= endDate;
+  const periodLabel = period === '7days' ? '7 derniers jours' : period === '14days' ? '14 derniers jours' : period === 'custom' ? 'Période personnalisée' : 'Aujourd’hui';
 
   const download = async () => {
+    if (isHistoryExport && (!sourceId || !validRange)) return;
     setLoading(true);
     setError('');
     try {
-      const file = await api.downloadExecutionsReport(date);
+      const file = isHistoryExport
+        ? await api.downloadHistoryReport(sourceId, startDate, addDays(endDate, 1))
+        : await api.downloadExecutionsReport(date);
       const url = URL.createObjectURL(file);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `rapport-executions-${date}.csv`;
+      link.download = isHistoryExport ? `historique-etl-${startDate}-${endDate}.csv` : `rapport-executions-${date}.csv`;
       document.body.append(link);
       link.click();
       link.remove();
@@ -245,22 +263,32 @@ function ReportsPage() {
       <div className="ui-page-heading">
         <div className="ui-eyebrow"><FileText />Exploitation des données</div>
         <h1>Rapports</h1>
-        <p>Exportez les exécutions réellement enregistrées pour la date de votre choix.</p>
+        <p>Exportez les exécutions enregistrées aujourd’hui, sur une période récente ou sur un intervalle précis.</p>
       </div>
-      <div className="ui-header-actions"><GlobalDateControls /><BccBrand className="module-brand" compact /></div>
+      <div className="ui-header-actions"><BccBrand className="module-brand" compact /></div>
     </header>
+    <section className="ui-panel report-period-bar" aria-label="Période du rapport">
+      <div><span>RAPPORT À EXPORTER</span><strong>Choisissez la période d’analyse</strong></div>
+      <div className="report-period-picker" role="group" aria-label="Période du rapport"><div>{[{ value: 'daily', label: 'Aujourd’hui' }, { value: '7days', label: '7 jours' }, { value: '14days', label: '14 jours' }, { value: 'custom', label: 'Personnalisée' }].map(option => <button key={option.value} type="button" className={period === option.value ? 'active' : ''} onClick={() => setPeriod(option.value)}><CalendarDays />{option.label}</button>)}</div></div>
+    </section>
     <div className="ui-report-layout">
       <section className="ui-panel ui-report-hero">
         <span><FileText /></span>
-        <h2>Rapport quotidien des exécutions</h2>
-        <p>Le fichier CSV reprend les états Staging et Data Warehouse disponibles dans la base de monitoring pour la journée sélectionnée.</p>
+        <h2>Rapports d’exécution ETL</h2>
+        <p>Le CSV reprend les exécutions, les étapes Staging et Data Warehouse, ainsi que leur statut global sur la période choisie.</p>
       </section>
       <section className="ui-panel ui-report-form">
         <h2>Préparer l’export</h2>
-        <p>Choisissez une date, puis générez le fichier.</p>
-        <p className="ui-panel-copy">La date active est utilisée pour générer ce rapport : <strong>{date}</strong>.</p>
+        <p>Définissez la période, puis générez le fichier CSV.</p>
+        <div className="report-period-form">
+          {isHistoryExport && sourceOptions.length > 0 && <CustomSelect label="Source" value={sourceId} onChange={setSourceId} options={sourceOptions} icon={FileText} ariaLabel="Source du rapport" />}
+          {period === 'custom' && <div className="report-date-range"><label><span>Du</span><input type="date" value={startDate} max={date} onChange={event => setStartDate(event.target.value)} /></label><label><span>Au</span><input type="date" value={endDate} min={startDate} max={date} onChange={event => setEndDate(event.target.value)} /></label></div>}
+        </div>
+        <p className="ui-panel-copy report-period-summary">{periodLabel} : <strong>{isHistoryExport ? `${startDate} au ${endDate}` : date}</strong>.</p>
+        {isHistoryExport && !sourceId && <p className="ui-inline-error">Sélectionnez une source pour exporter son historique.</p>}
+        {isHistoryExport && !validRange && <p className="ui-inline-error">La date de début doit précéder ou être égale à la date de fin.</p>}
         {error && <p className="ui-inline-error">{error}</p>}
-        <button className="ui-button ui-button--primary" type="button" disabled={loading || !date} onClick={download}><Download />{loading ? 'Génération…' : 'Télécharger le rapport CSV'}</button>
+        <button className="ui-button ui-button--primary" type="button" disabled={loading || !date || (isHistoryExport && (!sourceId || !validRange))} onClick={download}><Download />{loading ? 'Génération…' : 'Télécharger le rapport CSV'}</button>
       </section>
     </div>
   </main>;
